@@ -3,10 +3,17 @@ package pinned
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/update"
 )
 
-// Initialize updater
+type UpdateOptions struct {
+	ID       uuid.UUID `json:"id"`
+	Title    string    `json:"title,omitempty"`
+	Subtitle string    `json:"subtitle,omitempty"`
+	Type     string    `json:"type,omitempty"`
+}
+
 var metadataUpdater = update.NewUpdater[Pinned, UpdateOptions]()
 
 func init() {

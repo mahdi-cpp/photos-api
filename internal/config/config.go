@@ -7,7 +7,7 @@ import (
 
 const (
 	root        = "/app/iris/"
-	application = "com.iris.photos"
+	application = "com.iris.asset"
 	users       = "users"
 	Metadata    = "metadata"
 	Version     = "v3"
@@ -24,7 +24,7 @@ func GetUserPath(userID string) string {
 }
 
 func GetUserMetadataPath(id string, directory string) string {
-	pp := filepath.Join(root, application, users, id, Metadata, Version, directory)
+	pp := filepath.Join(root, application, users, id, Metadata, directory)
 	fmt.Println(pp)
 	return pp
 }

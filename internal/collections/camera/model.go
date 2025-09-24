@@ -1,16 +1,19 @@
 package camera
 
-import "time"
+import (
+	"time"
 
-func (a *Camera) SetID(id string)          { a.ID = id }
-func (a *Camera) SetCreatedAt(t time.Time) { a.CreatedAt = t }
-func (a *Camera) SetUpdatedAt(t time.Time) { a.UpdatedAt = t }
-func (a *Camera) GetID() string            { return a.ID }
-func (a *Camera) GetCreatedAt() time.Time  { return a.CreatedAt }
-func (a *Camera) GetUpdatedAt() time.Time  { return a.UpdatedAt }
+	"github.com/google/uuid"
+)
+
+func (c *Camera) GetID() uuid.UUID         { return c.ID }
+func (c *Camera) SetID(id uuid.UUID)       { c.ID = id }
+func (c *Camera) SetCreatedAt(t time.Time) { c.CreatedAt = t }
+func (c *Camera) SetUpdatedAt(t time.Time) { c.UpdatedAt = t }
+func (c *Camera) GetRecordSize() int       { return 2048 }
 
 type Camera struct {
-	ID          string    `json:"id"`
+	ID          uuid.UUID `json:"id"` // unique: true
 	Title       string    `json:"title"`
 	Subtitle    string    `json:"subtitle"`
 	Type        string    `json:"type"`
@@ -21,33 +24,4 @@ type Camera struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 	DeletedAt   time.Time `json:"deletedAt"`
 	Version     string    `json:"version"`
-}
-
-type UpdateOptions struct {
-	ID       string `json:"id"`
-	Title    string `json:"title,omitempty"`
-	Subtitle string `json:"subtitle,omitempty"`
-	Type     string `json:"type,omitempty"`
-}
-
-type SearchOptions struct {
-	ID       string `json:"id,omitempty"`
-	Title    string `json:"title,omitempty"`
-	Subtitle string `json:"subtitle,omitempty"`
-	Type     string `json:"type,omitempty"`
-
-	TextQuery string `json:"textQuery,omitempty"`
-
-	// Date filters
-	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
-	CreatedBefore *time.Time `json:"createdBefore,omitempty"`
-	ActiveAfter   *time.Time `json:"activeAfter,omitempty"`
-
-	// Pagination
-	Offset int `json:"offset,omitempty"`
-	Limit  int `json:"limit,omitempty"`
-
-	// Sorting
-	SortBy    string `json:"sortBy,omitempty"`    // "title", "created", "members", "lastActivity"
-	SortOrder string `json:"sortOrder,omitempty"` // "asc" or "desc"
 }

@@ -2,14 +2,38 @@ package trip
 
 import (
 	"strings"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/search"
 )
+
+type SearchOptions struct {
+	ID       uuid.UUID `json:"id,omitempty"`
+	Title    string    `json:"title,omitempty"`
+	Subtitle string    `json:"subtitle,omitempty"`
+	Type     string    `json:"type,omitempty"`
+
+	TextQuery string `json:"textQuery,omitempty"`
+
+	// Date filters
+	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
+	CreatedBefore *time.Time `json:"createdBefore,omitempty"`
+	ActiveAfter   *time.Time `json:"activeAfter,omitempty"`
+
+	// Pagination
+	Page int `json:"page,omitempty"`
+	Size int `json:"size,omitempty"`
+
+	// Sorting
+	Sort      string `json:"sort,omitempty"`      // "title", "created", "members", "lastActivity"
+	SortOrder string `json:"sortOrder,omitempty"` // "asc" or "desc"
+}
 
 const MaxLimit = 1000
 
 var LessFunks = map[string]search.LessFunction[*Trip]{
-	"id":        func(a, b *Trip) bool { return a.ID < b.ID },
+	"id":        func(a, b *Trip) bool { return a.ID.String() < b.ID.String() },
 	"createdAt": func(a, b *Trip) bool { return a.CreatedAt.Before(b.CreatedAt) },
 	"updatedAt": func(a, b *Trip) bool { return a.UpdatedAt.Before(b.UpdatedAt) },
 }
@@ -21,18 +45,18 @@ func GetLessFunc(sortBy, sortOrder string) search.LessFunction[*Trip] {
 		return nil
 	}
 
-	if sortOrder == "end" {
+	if sortOrder == "desc" {
 		return func(a, b *Trip) bool { return !fn(a, b) }
 	}
 	return fn
 }
 
-func BuildTripSearch(with SearchOptions) search.SearchCriteria[*Trip] {
+func BuildTripSearch(with SearchOptions) search.Criteria[*Trip] {
 
 	return func(a *Trip) bool {
 
 		// ID filter
-		if with.ID != "" && a.ID != with.ID {
+		if with.ID != uuid.Nil && a.ID != with.ID {
 			return false
 		}
 
@@ -63,11 +87,11 @@ func Search(chats []*Trip, with SearchOptions) []*Trip {
 	criteria := BuildTripSearch(with)
 
 	// Execute search_manager
-	results := search.Search(chats, criteria)
+	results := search.Find(chats, criteria)
 
 	// Sort results if needed
-	if with.SortBy != "" {
-		lessFn := GetLessFunc(with.SortBy, with.SortOrder)
+	if with.Sort != "" {
+		lessFn := GetLessFunc(with.Sort, with.SortOrder)
 		if lessFn != nil {
 			search.SortIndexedItems(results, lessFn)
 		}
@@ -79,13 +103,21 @@ func Search(chats []*Trip, with SearchOptions) []*Trip {
 		final[i] = item.Value
 	}
 
-	if with.Limit == 0 { // if not set default is MAX_LIMIT
-		with.Limit = MaxLimit
+	if with.Size == 0 { // if not set default is MAX_LIMIT
+		with.Size = MaxLimit
 	}
 
 	// Apply pagination
-	start := with.Offset
-	end := start + with.Limit
+	start := (with.Page - 1) * with.Size // Corrected pagination logic
+	if start < 0 {
+		start = 0
+	}
+
+	// Check if the start index is out of bounds. If so, return an empty slice.
+	if start >= len(final) {
+		return []*Trip{}
+	}
+	end := start + with.Size
 	if end > len(final) {
 		end = len(final)
 	}

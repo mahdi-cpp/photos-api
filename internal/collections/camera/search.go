@@ -2,14 +2,38 @@ package camera
 
 import (
 	"strings"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/search"
 )
+
+type SearchOptions struct {
+	ID       uuid.UUID `json:"id,omitempty"`
+	Title    string    `json:"title,omitempty"`
+	Subtitle string    `json:"subtitle,omitempty"`
+	Type     string    `json:"type,omitempty"`
+
+	TextQuery string `json:"textQuery,omitempty"`
+
+	// Date filters
+	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
+	CreatedBefore *time.Time `json:"createdBefore,omitempty"`
+	ActiveAfter   *time.Time `json:"activeAfter,omitempty"`
+
+	// Pagination
+	Page int `form:"page,omitempty"`
+	Size int `form:"size,omitempty"`
+
+	// Sorting
+	Sort      string `form:"sort,omitempty"`      // "title", "created", "members", "lastActivity"
+	SortOrder string `form:"sortOrder,omitempty"` // "asc" or "desc"
+}
 
 const MaxLimit = 1000
 
 var LessFunks = map[string]search.LessFunction[*Camera]{
-	"id":        func(a, b *Camera) bool { return a.ID < b.ID },
+	"id":        func(a, b *Camera) bool { return a.ID.String() < b.ID.String() },
 	"createdAt": func(a, b *Camera) bool { return a.CreatedAt.Before(b.CreatedAt) },
 	"updatedAt": func(a, b *Camera) bool { return a.UpdatedAt.Before(b.UpdatedAt) },
 }
@@ -21,18 +45,18 @@ func GetLessFunc(sortBy, sortOrder string) search.LessFunction[*Camera] {
 		return nil
 	}
 
-	if sortOrder == "end" {
+	if sortOrder == "desc" {
 		return func(a, b *Camera) bool { return !fn(a, b) }
 	}
 	return fn
 }
 
-func BuildCameraSearch(with SearchOptions) search.SearchCriteria[*Camera] {
+func BuildCameraSearch(with SearchOptions) search.Criteria[*Camera] {
 
 	return func(a *Camera) bool {
 
 		// ID filter
-		if with.ID != "" && a.ID != with.ID {
+		if with.ID != uuid.Nil && a.ID != with.ID {
 			return false
 		}
 
@@ -63,11 +87,11 @@ func Search(chats []*Camera, with SearchOptions) []*Camera {
 	criteria := BuildCameraSearch(with)
 
 	// Execute search_manager
-	results := search.Search(chats, criteria)
+	results := search.Find(chats, criteria)
 
 	// Sort results if needed
-	if with.SortBy != "" {
-		lessFn := GetLessFunc(with.SortBy, with.SortOrder)
+	if with.Sort != "" {
+		lessFn := GetLessFunc(with.Sort, with.SortOrder)
 		if lessFn != nil {
 			search.SortIndexedItems(results, lessFn)
 		}
@@ -79,13 +103,22 @@ func Search(chats []*Camera, with SearchOptions) []*Camera {
 		final[i] = item.Value
 	}
 
-	if with.Limit == 0 { // if not set default is MAX_LIMIT
-		with.Limit = MaxLimit
+	if with.Size == 0 { // if not set default is MAX_LIMIT
+		with.Size = MaxLimit
 	}
 
 	// Apply pagination
-	start := with.Offset
-	end := start + with.Limit
+	start := (with.Page - 1) * with.Size // Corrected pagination logic
+	if start < 0 {
+		start = 0
+	}
+
+	// Check if the start index is out of bounds. If so, return an empty slice.
+	if start >= len(final) {
+		return []*Camera{}
+	}
+
+	end := start + with.Size
 	if end > len(final) {
 		end = len(final)
 	}

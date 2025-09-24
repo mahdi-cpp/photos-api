@@ -1,16 +1,19 @@
 package shared_album
 
-import "time"
+import (
+	"time"
 
-func (a *SharedAlbum) SetID(id string)          { a.ID = id }
-func (a *SharedAlbum) SetCreatedAt(t time.Time) { a.CreatedAt = t }
-func (a *SharedAlbum) SetUpdatedAt(t time.Time) { a.UpdatedAt = t }
-func (a *SharedAlbum) GetID() string            { return a.ID }
-func (a *SharedAlbum) GetCreatedAt() time.Time  { return a.CreatedAt }
-func (a *SharedAlbum) GetUpdatedAt() time.Time  { return a.UpdatedAt }
+	"github.com/google/uuid"
+)
+
+func (s *SharedAlbum) GetID() uuid.UUID         { return s.ID }
+func (s *SharedAlbum) SetID(id uuid.UUID)       { s.ID = id }
+func (s *SharedAlbum) SetCreatedAt(t time.Time) { s.CreatedAt = t }
+func (s *SharedAlbum) SetUpdatedAt(t time.Time) { s.UpdatedAt = t }
+func (s *SharedAlbum) GetRecordSize() int       { return 2048 }
 
 type SharedAlbum struct {
-	ID           string    `json:"id"`
+	ID           uuid.UUID `json:"id"`
 	Title        string    `json:"title"`
 	Subtitle     string    `json:"subtitle"`
 	Type         string    `json:"type"`
@@ -21,33 +24,4 @@ type SharedAlbum struct {
 	UpdatedAt    time.Time `json:"updatedAt"`
 	DeletedAt    time.Time `json:"deletedAt"`
 	Version      string    `json:"version"`
-}
-
-type UpdateOptions struct {
-	ID       string `json:"id"`
-	Title    string `json:"title,omitempty"`
-	Subtitle string `json:"subtitle,omitempty"`
-	Type     string `json:"type,omitempty"`
-}
-
-type SearchOptions struct {
-	ID       string `json:"id,omitempty"`
-	Title    string `json:"title,omitempty"`
-	Subtitle string `json:"subtitle,omitempty"`
-	Type     string `json:"type,omitempty"`
-
-	TextQuery string `json:"textQuery,omitempty"`
-
-	// Date filters
-	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
-	CreatedBefore *time.Time `json:"createdBefore,omitempty"`
-	ActiveAfter   *time.Time `json:"activeAfter,omitempty"`
-
-	// Pagination
-	Offset int `json:"offset,omitempty"`
-	Limit  int `json:"limit,omitempty"`
-
-	// Sorting
-	SortBy    string `json:"sortBy,omitempty"`    // "title", "created", "members", "lastActivity"
-	SortOrder string `json:"sortOrder,omitempty"` // "asc" or "desc"
 }

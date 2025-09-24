@@ -3,8 +3,16 @@ package album
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/update"
 )
+
+type UpdateOptions struct {
+	ID       uuid.UUID `json:"id"`
+	Title    string    `json:"title,omitempty"`
+	Subtitle string    `json:"subtitle,omitempty"`
+	Type     string    `json:"type,omitempty"`
+}
 
 // Initialize updater
 var metadataUpdater = update.NewUpdater[Album, UpdateOptions]()
