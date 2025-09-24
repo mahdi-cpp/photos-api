@@ -63,7 +63,6 @@ type Asset struct {
 type FileInfo struct {
 	BaseURL  string `json:"baseURL"`
 	FileSize string `json:"fileSize"`
-	FileType string `json:"fileType"`
 	MimeType string `json:"mimeType"`
 }
 

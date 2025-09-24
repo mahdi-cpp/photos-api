@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/mahdi-cpp/iris-tools/mygin"
@@ -27,8 +28,13 @@ func main() {
 	assetHandler := handler.NewAssetHandler(appManager)
 	assetRoute(assetHandler)
 
-	router.POST("/api/chats", assetHandler.Create)
-	router.GET("/api/chats", assetHandler.Read)
+	router.POST("/api/assets", assetHandler.Create)
+	router.GET("api/assets", assetHandler.Read)
+
+	err = router.Run(":50151")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	//albumHandler := handler.NewAlbumHandler(appManager)
 	//RegisterAlbumRoutes(albumHandler)

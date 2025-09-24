@@ -10,7 +10,6 @@ import (
 
 type AppManager struct {
 	mu              sync.RWMutex
-	Users           map[string]string
 	accountManagers map[uuid.UUID]*account.Manager
 }
 
@@ -18,7 +17,6 @@ func New() (*AppManager, error) {
 
 	manager := &AppManager{
 		accountManagers: make(map[uuid.UUID]*account.Manager),
-		Users:           make(map[string]string),
 	}
 
 	defaultUserID, err := uuid.Parse("018f3a8b-1b32-729b-8f90-1234a5b6c7d8")

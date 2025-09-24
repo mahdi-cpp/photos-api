@@ -3,12 +3,19 @@ package handler
 import (
 	"net/http"
 
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/mygin"
+	"github.com/mahdi-cpp/photos-api/internal/collections/asset"
 
 	"github.com/mahdi-cpp/photos-api/internal/application"
 	"github.com/mahdi-cpp/photos-api/internal/help"
 )
+
+type Error struct {
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+}
 
 type AssetHandler struct {
 	appManager *application.AppManager
@@ -18,33 +25,38 @@ func NewAssetHandler(manager *application.AppManager) *AssetHandler {
 	return &AssetHandler{appManager: manager}
 }
 
+func SendError(c *mygin.Context, message string, code int) {
+	c.JSON(http.StatusBadRequest, mygin.H{"message": message, "code": code})
+}
+
 func (h *AssetHandler) Create(c *mygin.Context) {
+
 	userID, ok := help.GetUserID(c)
 	if !ok {
-		help.AbortWithUserIDInvalid(c)
+		SendError(c, "user id invalid", http.StatusBadRequest)
 		return
 	}
 
 	accountManager, err := h.appManager.GetAccountManager(userID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, mygin.H{"error": err})
+		SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	assetID := c.Param("id")
-	id, err := uuid.Parse(assetID)
+	var request *asset.Asset
+	err = json.NewDecoder(c.Request.Body).Decode(&request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, mygin.H{"error": err})
+		SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	item, err := accountManager.Read(id)
+	create, err := accountManager.Assets.Create(request)
 	if err != nil {
-		c.JSON(http.StatusNotFound, mygin.H{"error": "Asset not found"})
+		SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	c.JSON(http.StatusOK, item)
+	c.JSON(http.StatusOK, create)
 }
 
 func (h *AssetHandler) Read(c *mygin.Context) {

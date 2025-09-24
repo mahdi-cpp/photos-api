@@ -58,7 +58,7 @@ func (m *Manager) preparePinned() {
 				ID: uuid.Nil,
 				FileInfo: asset.FileInfo{
 					BaseURL:  "map",
-					FileType: "map",
+					MimeType: "map",
 				},
 			}
 			assets = append(assets, &asset1)
