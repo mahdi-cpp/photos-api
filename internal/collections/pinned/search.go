@@ -97,7 +97,6 @@ func Search(chats []*Pinned, with SearchOptions) []*Pinned {
 		}
 	}
 
-	// Extract final assets
 	final := make([]*Pinned, len(results))
 	for i, item := range results {
 		final[i] = item.Value

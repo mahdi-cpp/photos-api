@@ -96,7 +96,7 @@ func Search(chats []*Album, with SearchOptions) []*Album {
 		}
 	}
 
-	// Extract final assets
+	// Extract final photos
 	final := make([]*Album, len(results))
 	for i, item := range results {
 		final[i] = item.Value

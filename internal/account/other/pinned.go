@@ -1,14 +1,15 @@
-package account
+package other
 
 import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/mahdi-cpp/photos-api/internal/collections/asset"
+	"github.com/mahdi-cpp/photos-api/internal/account"
+	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/help"
 )
 
-func (m *Manager) preparePinned() {
+func (m *account.Manager) preparePinned() {
 
 	items, err := m.Pinned.CollectionMemory.ReadAll()
 	if err != nil {
@@ -17,52 +18,52 @@ func (m *Manager) preparePinned() {
 
 	for _, item := range items {
 
-		var with *asset.SearchOptions
+		var with *photo.SearchOptions
 
 		switch item.Type {
 		case "camera":
-			with = &asset.SearchOptions{
+			with = &photo.SearchOptions{
 				IsCamera:  help.BoolPtr(true),
-				SortBy:    "createdAt",
+				Sort:      "createdAt",
 				SortOrder: "start",
 				Size:      1,
 			}
 			break
 		case "screenshot":
-			with = &asset.SearchOptions{
+			with = &photo.SearchOptions{
 				IsScreenshot: help.BoolPtr(true),
-				SortBy:       "createdAt",
+				Sort:         "createdAt",
 				SortOrder:    "start",
 				Size:         1,
 			}
 			break
 		case "favorite":
-			with = &asset.SearchOptions{
+			with = &photo.SearchOptions{
 				IsFavorite: help.BoolPtr(true),
-				SortBy:     "createdAt",
+				Sort:       "createdAt",
 				SortOrder:  "start",
 				Size:       1,
 			}
 			break
 		case "video":
-			with = &asset.SearchOptions{
+			with = &photo.SearchOptions{
 				MimeType:  help.StrPtr("video/mp4"),
-				SortBy:    "createdAt",
+				Sort:      "createdAt",
 				SortOrder: "start",
 				Size:      1,
 			}
 			break
 		case "map":
-			var assets []*asset.Asset
-			asset1 := asset.Asset{
+			var photos []*photo.Photo
+			a := photo.Photo{
 				ID: uuid.Nil,
-				FileInfo: asset.FileInfo{
+				FileInfo: photo.FileInfo{
 					BaseURL:  "map",
 					MimeType: "map",
 				},
 			}
-			assets = append(assets, &asset1)
-			m.Pinned.CoverAssetArray[item.ID] = assets
+			photos = append(photos, &a)
+			m.Pinned.CoverPhotoArray[item.ID] = photos
 			break
 		case "album":
 			selectedAlbum, err := m.Album.CollectionMemory.Read(item.AlbumID)
@@ -70,9 +71,9 @@ func (m *Manager) preparePinned() {
 				continue
 			}
 			item.Title = selectedAlbum.Title
-			with = &asset.SearchOptions{
+			with = &photo.SearchOptions{
 				Albums:    []string{selectedAlbum.ID.String()},
-				SortBy:    "createdAt",
+				Sort:      "createdAt",
 				SortOrder: "start",
 				Size:      1,
 			}
@@ -89,6 +90,6 @@ func (m *Manager) preparePinned() {
 			return
 		}
 		item.Count = len(filterAssets)
-		m.Pinned.CoverAssetArray[item.ID] = filterAssets
+		m.Pinned.CoverPhotoArray[item.ID] = filterAssets
 	}
 }

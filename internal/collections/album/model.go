@@ -13,17 +13,16 @@ func (a *Album) SetUpdatedAt(t time.Time) { a.UpdatedAt = t }
 func (a *Album) GetRecordSize() int       { return 2048 }
 
 type Album struct {
-	ID                uuid.UUID `json:"id"` // unique: true
-	Title             string    `json:"title"`
-	Subtitle          string    `json:"subtitle"`
-	Type              string    `json:"type"`
-	Number            int       `json:"number"`
-	IsCollectionValid bool      `json:"isCollectionValid"`
-	IsHidden          bool      `json:"isHidden"`
-	Count             int       `json:"count"`
-	LastSeen          time.Time `json:"lastSeen"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
-	DeletedAt         time.Time `json:"deletedAt"`
-	Version           string    `json:"version"`
+	ID        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	Subtitle  string    `json:"subtitle"`
+	Type      string    `json:"type"`
+	Number    int       `json:"number"`
+	IsHidden  bool      `json:"isHidden"`
+	Count     int       `json:"count"`
+	LastSeen  time.Time `json:"lastSeen"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	DeletedAt time.Time `json:"deletedAt"`
+	Version   string    `json:"version"`
 }

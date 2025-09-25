@@ -1,4 +1,4 @@
-package account
+package other
 
 //func (m *Manager) prepareCameras() {
 //
@@ -10,7 +10,7 @@ package account
 //		m.cameras = map[string]*ali.PHCollection[camera.Camera]{}
 //	}
 //
-//	indexes := m.Assets.GetAllIndexes()
+//	indexes := m.PhotosManager.GetAllIndexes()
 //
 //	for _, a := range indexes {
 //		if a.Camera.Model == "" {
@@ -36,7 +36,7 @@ package account
 //
 //	for _, collection := range m.cameras {
 //
-//		with := &asset.SearchOptions{
+//		with := &photo.SearchOptions{
 //			UserID:      m.userID,
 //			CameraMake:  collection.Item.CameraMake,
 //			CameraModel: collection.Item.CameraModel,
@@ -50,7 +50,7 @@ package account
 //			fmt.Printf("Error getting all person_test: %v\n", err)
 //			return
 //		}
-//		collection.Assets = filterAssets
+//		collection.PhotosManager = filterAssets
 //	}
 //}
 //

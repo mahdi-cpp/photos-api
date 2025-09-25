@@ -1,23 +1,24 @@
-package account
+package other
 
 import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/mahdi-cpp/photos-api/internal/collections/asset"
+	"github.com/mahdi-cpp/photos-api/internal/account"
+	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 )
 
-func (m *Manager) prepareTrips() {
+func (m *account.Manager) prepareTrips() {
 
 	items, err := m.Trips.CollectionMemory.ReadAll()
 	if err != nil {
 	}
 
 	for _, item := range items {
-		with := &asset.SearchOptions{
+		with := &photo.SearchOptions{
 			UserID:    uuid.Nil,
 			Trips:     []string{item.ID.String()},
-			SortBy:    "createdAt",
+			Sort:      "createdAt",
 			SortOrder: "start",
 			Size:      2,
 		}
@@ -28,6 +29,6 @@ func (m *Manager) prepareTrips() {
 			return
 		}
 		item.Count = len(filterAssets)
-		m.Trips.CoverAssetArray[item.ID] = filterAssets
+		m.Trips.CoverPhotoArray[item.ID] = filterAssets
 	}
 }

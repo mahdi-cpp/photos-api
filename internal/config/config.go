@@ -7,7 +7,7 @@ import (
 
 const (
 	root        = "/app/iris/"
-	application = "com.iris.asset"
+	application = "com.iris.photos"
 	users       = "users"
 	Metadata    = "metadata"
 	Version     = "v3"

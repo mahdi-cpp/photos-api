@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var polygonsDir = "/home/mahdi/asset/map/hamedan/"
+var polygonsDir = "/home/mahdi/photo/map/hamedan/"
 
 // Polygon represents the structure of your JSON data
 type Polygon struct {

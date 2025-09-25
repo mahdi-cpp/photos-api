@@ -1,6 +1,7 @@
-package asset
+package photo
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,13 +12,23 @@ func (i *Index) GetID() uuid.UUID         { return i.ID }
 func (i *Index) SetID(id uuid.UUID)       { i.ID = id }
 func (i *Index) SetCreatedAt(t time.Time) { i.CreatedAt = t }
 func (i *Index) SetUpdatedAt(t time.Time) { i.UpdatedAt = t }
-func (i *Index) GetRecordSize() int       { return 2048 }
+func (i *Index) GetRecordSize() int       { return 400 }
 
-func (p *Asset) GetID() uuid.UUID         { return p.ID }
-func (p *Asset) SetID(id uuid.UUID)       { p.ID = id }
-func (p *Asset) SetCreatedAt(t time.Time) { p.CreatedAt = t }
-func (p *Asset) SetUpdatedAt(t time.Time) { p.UpdatedAt = t }
-func (p *Asset) GetRecordSize() int       { return 2048 }
+func (p *Photo) GetID() uuid.UUID         { return p.ID }
+func (p *Photo) SetID(id uuid.UUID)       { p.ID = id }
+func (p *Photo) SetCreatedAt(t time.Time) { p.CreatedAt = t }
+func (p *Photo) SetUpdatedAt(t time.Time) { p.UpdatedAt = t }
+func (p *Photo) GetRecordSize() int       { return 2048 }
+
+func (a *Join) GetRecordSize() int { return 100 }
+func (a *Join) GetCompositeKey() string {
+	return fmt.Sprintf("%s:%s", a.ParentID.String(), a.PhotoID.String())
+}
+
+type Join struct {
+	ParentID uuid.UUID `json:"parentID"`
+	PhotoID  uuid.UUID `json:"photoId"`
+}
 
 type Index struct {
 	ID                  uuid.UUID `json:"id"`
@@ -31,33 +42,28 @@ type Index struct {
 	CanDelete           bool      `json:"canDelete"`
 	CanEditContent      bool      `json:"canEditContent"`
 	CanAddToSharedAlbum bool      `json:"canAddToSharedAlbum"`
-	IsUserLibraryAsset  bool      `json:"IsUserLibraryAsset"`
 	CreatedAt           time.Time `json:"createdAt"`
 	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
-type Asset struct {
-	ID                 uuid.UUID  `json:"id" index:"true"`
-	UserID             uuid.UUID  `json:"userId" index:"true"`
-	FileInfo           FileInfo   `json:"fileInfo"`
-	ImageInfo          ImageInfo  `json:"imageInfo"`
-	VideoInfo          VideoInfo  `json:"videoInfo"`
-	CameraInfo         CameraInfo `json:"cameraInfo"`
-	Location           Location   `json:"location"`
-	IsCamera           bool       `json:"isCamera"`
-	IsFavorite         bool       `json:"isFavorite"`
-	IsScreenshot       bool       `json:"isScreenshot"`
-	IsHidden           bool       `json:"isHidden"`
-	CameraMake         string     `json:"cameraMake,omitempty"`
-	CameraModel        string     `json:"cameraModel,omitempty"`
-	Albums             []string   `json:"albums"`
-	Trips              []string   `json:"trips"`
-	Persons            []string   `json:"persons"`
-	IsUserLibraryAsset bool       `json:"IsUserLibraryAsset"`
-	CreatedAt          time.Time  `json:"createdAt"`
-	UpdatedAt          time.Time  `json:"updatedAt"`
-	DeletedAt          time.Time  `json:"deletedAt"`
-	Version            string     `json:"version"`
+type Photo struct {
+	ID           uuid.UUID  `json:"id" index:"true"`
+	UserID       uuid.UUID  `json:"userId" index:"true"`
+	FileInfo     FileInfo   `json:"fileInfo"`
+	ImageInfo    ImageInfo  `json:"imageInfo"`
+	VideoInfo    VideoInfo  `json:"videoInfo"`
+	CameraInfo   CameraInfo `json:"cameraInfo"`
+	Location     Location   `json:"location"`
+	IsCamera     bool       `json:"isCamera"`
+	IsFavorite   bool       `json:"isFavorite"`
+	IsScreenshot bool       `json:"isScreenshot"`
+	IsHidden     bool       `json:"isHidden"`
+	CameraMake   string     `json:"cameraMake,omitempty"`
+	CameraModel  string     `json:"cameraModel,omitempty"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
+	DeletedAt    time.Time  `json:"deletedAt"`
+	Version      string     `json:"version"`
 }
 
 type FileInfo struct {
@@ -113,35 +119,32 @@ type Location struct {
 	Electronic int     `json:"electronic,omitempty"`
 }
 
-type PhotoIndex struct {
-	ID                  uuid.UUID `json:"id"`
-	IsCamera            bool      `json:"isCamera"`
-	IsFavorite          bool      `json:"isFavorite"`
-	IsScreenshot        bool      `json:"isScreenshot"`
-	IsHidden            bool      `json:"isHidden"`
-	CanDelete           bool      `json:"canDelete"`
-	CanEditContent      bool      `json:"canEditContent"`
-	CanAddToSharedAlbum bool      `json:"canAddToSharedAlbum"`
-	IsUserLibraryAsset  bool      `json:"IsUserLibraryAsset"`
-	CreatedAt           time.Time `json:"createdAt"`
-}
-
 type Collection[T collection_manager_memory.CollectionItem] struct {
 	CollectionMemory *collection_manager_memory.Manager[T]
-	CoverAssetArray  map[uuid.UUID][]*Asset
+	CoverPhotoArray  map[uuid.UUID][]*Photo
 }
 
-func NewCollection[T collection_manager_memory.CollectionItem](path string) *Collection[T] {
+func NewCollection[T collection_manager_memory.CollectionItem](path string, fileName string) *Collection[T] {
 
-	c, err := collection_manager_memory.New[T](path)
+	c, err := collection_manager_memory.New[T](path, fileName)
 	if err != nil {
 		panic(err)
 	}
 
 	a := &Collection[T]{
 		CollectionMemory: c,
-		CoverAssetArray:  make(map[uuid.UUID][]*Asset),
+		CoverPhotoArray:  make(map[uuid.UUID][]*Photo),
 	}
 
 	return a
+}
+
+type PHCollectionList[T any] struct {
+	Status      string             `json:"status"` // "success" or "error"
+	Collections []*PHCollection[T] `json:"collections"`
+}
+
+type PHCollection[T any] struct {
+	Item   T        `json:"item"`   // Generic items
+	Photos []*Photo `json:"photos"` // Specific photos
 }

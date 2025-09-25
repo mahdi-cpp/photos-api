@@ -6,7 +6,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/mygin"
-	"github.com/mahdi-cpp/photos-api/internal/collections/asset"
+	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 
 	"github.com/mahdi-cpp/photos-api/internal/application"
 	"github.com/mahdi-cpp/photos-api/internal/help"
@@ -17,19 +17,19 @@ type Error struct {
 	Code    int    `json:"code"`
 }
 
-type AssetHandler struct {
+type PhotoHandler struct {
 	appManager *application.AppManager
 }
 
-func NewAssetHandler(manager *application.AppManager) *AssetHandler {
-	return &AssetHandler{appManager: manager}
+func NewPhotoHandler(manager *application.AppManager) *PhotoHandler {
+	return &PhotoHandler{appManager: manager}
 }
 
 func SendError(c *mygin.Context, message string, code int) {
 	c.JSON(http.StatusBadRequest, mygin.H{"message": message, "code": code})
 }
 
-func (h *AssetHandler) Create(c *mygin.Context) {
+func (h *PhotoHandler) Create(c *mygin.Context) {
 
 	userID, ok := help.GetUserID(c)
 	if !ok {
@@ -43,14 +43,14 @@ func (h *AssetHandler) Create(c *mygin.Context) {
 		return
 	}
 
-	var request *asset.Asset
+	var request *photo.Photo
 	err = json.NewDecoder(c.Request.Body).Decode(&request)
 	if err != nil {
 		SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	create, err := accountManager.Assets.Create(request)
+	create, err := accountManager.PhotosManager.Create(request)
 	if err != nil {
 		SendError(c, err.Error(), http.StatusBadRequest)
 		return
@@ -59,7 +59,7 @@ func (h *AssetHandler) Create(c *mygin.Context) {
 	c.JSON(http.StatusOK, create)
 }
 
-func (h *AssetHandler) Read(c *mygin.Context) {
+func (h *PhotoHandler) Read(c *mygin.Context) {
 
 	userID, ok := help.GetUserID(c)
 	if !ok {
@@ -73,8 +73,8 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 		return
 	}
 
-	assetID := c.Param("id")
-	id, err := uuid.Parse(assetID)
+	photoID := c.Param("id")
+	id, err := uuid.Parse(photoID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, mygin.H{"error": err})
 		return
@@ -82,14 +82,14 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 
 	item, err := accountManager.Read(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, mygin.H{"error": "Asset not found"})
+		c.JSON(http.StatusNotFound, mygin.H{"error": "Photo not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, item)
 }
 
-//func (h *AssetHandler) ReadAll(c *gin.Context) {
+//func (h *PhotoHandler) ReadAll(c *gin.Context) {
 //
 //	userID, ok := help.GetUserID(c)
 //	if !ok {
@@ -99,7 +99,7 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //
 //	fmt.Println("ReadAll userID: ", userID)
 //
-//	var with *asset.SearchOptions
+//	var with *photo.SearchOptions
 //	if err := c.ShouldBindJSON(&with); err != nil {
 //		help.AbortWithRequestInvalid(c)
 //		return
@@ -120,7 +120,7 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //
 //	fmt.Println("ReadAll count", len(items))
 //
-//	//result := asset.PHFetchResult[*asset.Assets]{
+//	//result := photo.PHFetchResult[*photo.PhotosManager]{
 //	//	Items:  items,
 //	//	Total:  total,
 //	//	Size:  100,
@@ -130,7 +130,7 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //	c.JSON(http.StatusOK, mygin.H{"data": items})
 //}
 //
-//func (h *AssetHandler) Update(c *gin.Context) {
+//func (h *PhotoHandler) Update(c *gin.Context) {
 //
 //	userID, ok := help.GetUserID(c)
 //	if !ok {
@@ -138,7 +138,7 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //		return
 //	}
 //
-//	var updateOptions asset.UpdateOptions
+//	var updateOptions photo.UpdateOptions
 //	if err := c.ShouldBindJSON(&updateOptions); err != nil {
 //		help.AbortWithRequestInvalid(c)
 //		return
@@ -150,7 +150,7 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //		return
 //	}
 //
-//	asset, err := userManager.UpdateAssets(updateOptions)
+//	photo, err := userManager.Update(updateOptions)
 //	if err != nil {
 //		c.JSON(http.StatusBadRequest, mygin.H{"error": err.Error()})
 //		return
@@ -158,17 +158,17 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //
 //	userManager.UpdateCollections()
 //
-//	c.JSON(http.StatusCreated, asset)
+//	c.JSON(http.StatusCreated, photo)
 //}
 //
-//func (h *AssetHandler) BuckUpdate(c *gin.Context) {
+//func (h *PhotoHandler) BuckUpdate(c *gin.Context) {
 //	userID, ok := help.GetUserID(c)
 //	if !ok {
 //		help.AbortWithUserIDInvalid(c)
 //		return
 //	}
 //
-//	var updateOptions asset.UpdateOptions
+//	var updateOptions photo.UpdateOptions
 //	if err := c.ShouldBindJSON(&updateOptions); err != nil {
 //		help.AbortWithRequestInvalid(c)
 //		return
@@ -186,11 +186,11 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //		return
 //	}
 //
-//	for _, asset := range allAssets {
-//		updateOptions.AssetIds = append(updateOptions.AssetIds, asset.ID)
+//	for _, photo := range allAssets {
+//		updateOptions.PhotosIds = append(updateOptions.PhotosIds, photo.ID)
 //	}
 //
-//	asset, err := userManager.UpdateAssets(updateOptions)
+//	photo, err := userManager.Update(updateOptions)
 //	if err != nil {
 //		c.JSON(http.StatusBadRequest, mygin.H{"error": err.Error()})
 //		return
@@ -198,10 +198,10 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //
 //	userManager.UpdateCollections()
 //
-//	c.JSON(http.StatusCreated, asset)
+//	c.JSON(http.StatusCreated, photo)
 //}
 //
-//func (h *AssetHandler) Delete(c *gin.Context) {
+//func (h *PhotoHandler) Delete(c *gin.Context) {
 //
 //	//userID := c.Query("userID")
 //	//userID, err := strconv.Atoi(userID)
@@ -210,7 +210,7 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //	//	return
 //	//}
 //
-//	//var request asset.Delete
+//	//var request photo.Delete
 //	//if err := c.ShouldBindJSON(&request); err != nil {
 //	//	c.JSON(http.StatusBadRequest, mygin.H{"error": "Invalid request"})
 //	//	return
@@ -221,16 +221,16 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //	//	c.JSON(http.StatusBadRequest, mygin.H{"error": err})
 //	//}
 //	//
-//	//err = userManager.DeleteAsset(request.AssetID)
+//	//err = userManager.Delete(request.PhotoID)
 //	//if err != nil {
 //	//	c.JSON(http.StatusNotFound, mygin.H{"error": err.Error()})
 //	//	return
 //	//}
 //	//
-//	//c.JSON(http.StatusOK, "successful delete person_test with id: "+request.AssetID)
+//	//c.JSON(http.StatusOK, "successful delete person_test with id: "+request.PhotoID)
 //}
 //
-//func (h *AssetHandler) Search(c *gin.Context) {
+//func (h *PhotoHandler) Search(c *gin.Context) {
 //
 //	userID, ok := help.GetUserID(c)
 //	if !ok {
@@ -253,10 +253,10 @@ func (h *AssetHandler) Read(c *mygin.Context) {
 //		}
 //	}
 //
-//	filters := asset.SearchOptions{
+//	filters := photo.SearchOptions{
 //		UserID:    userID,
 //		TextQuery: query,
-//		//MediaType: asset.MediaType(mediaType),
+//		//MediaType: photo.MediaType(mediaType),
 //	}
 //
 //	if len(dateRange) > 0 {

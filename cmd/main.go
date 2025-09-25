@@ -25,11 +25,11 @@ func main() {
 	// Create a new engine with default middleware
 	router := mygin.Default()
 
-	assetHandler := handler.NewAssetHandler(appManager)
+	assetHandler := handler.NewPhotoHandler(appManager)
 	assetRoute(assetHandler)
 
-	router.POST("/api/assets", assetHandler.Create)
-	router.GET("api/assets", assetHandler.Read)
+	router.POST("/api/photos", assetHandler.Create)
+	router.GET("api/photos", assetHandler.Read)
 
 	err = router.Run(":50151")
 	if err != nil {
@@ -60,7 +60,7 @@ func main() {
 	//startServer(router)
 }
 
-func assetRoute(h *handler.AssetHandler) {
+func assetRoute(h *handler.PhotoHandler) {
 
 	//api := router.Group("")
 

@@ -1,22 +1,23 @@
-package account
+package other
 
 import (
 	"fmt"
 
-	"github.com/mahdi-cpp/photos-api/internal/collections/asset"
+	"github.com/mahdi-cpp/photos-api/internal/account"
+	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 )
 
-func (m *Manager) preparePersons() {
+func (m *account.Manager) preparePersons() {
 
 	items, err := m.Persons.CollectionMemory.ReadAll()
 	if err != nil {
 	}
 
 	for _, item := range items {
-		with := &asset.SearchOptions{
+		with := &photo.SearchOptions{
 			UserID:    m.userID,
 			Persons:   []string{item.ID.String()},
-			SortBy:    "createdAt",
+			Sort:      "createdAt",
 			SortOrder: "start",
 			Size:      1,
 		}
@@ -26,6 +27,6 @@ func (m *Manager) preparePersons() {
 			return
 		}
 		item.Count = len(filterAssets)
-		m.Persons.CoverAssetArray[item.ID] = filterAssets
+		m.Persons.CoverPhotoArray[item.ID] = filterAssets
 	}
 }

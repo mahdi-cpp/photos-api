@@ -7,29 +7,24 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/mahdi-cpp/iris-tools/collection_manager_index"
 	"github.com/mahdi-cpp/photos-api/internal/collections/album"
-	"github.com/mahdi-cpp/photos-api/internal/collections/ali"
-	"github.com/mahdi-cpp/photos-api/internal/collections/asset"
-	"github.com/mahdi-cpp/photos-api/internal/collections/camera"
-	"github.com/mahdi-cpp/photos-api/internal/collections/person"
-	"github.com/mahdi-cpp/photos-api/internal/collections/pinned"
-	"github.com/mahdi-cpp/photos-api/internal/collections/shared_album"
-	"github.com/mahdi-cpp/photos-api/internal/collections/trip"
+	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/config"
 )
 
 type Manager struct {
-	mu           sync.RWMutex
-	userID       uuid.UUID
-	Assets       *collection_manager_index.Manager[*asset.Asset, *asset.Index]
-	Album        *asset.Collection[*album.Album]
-	Trips        *asset.Collection[*trip.Trip]
-	Persons      *asset.Collection[*person.Person]
-	Pinned       *asset.Collection[*pinned.Pinned]
-	SharedAlbums *asset.Collection[*shared_album.SharedAlbum]
-	cameras      map[string]*ali.PHCollection[camera.Camera]
-	statsMu      sync.Mutex
+	mu     sync.RWMutex
+	userID uuid.UUID
+
+	PhotosManager *photo.Manager
+	AlbumsManager *album.Manager
+
+	//Trips        *photo.Collection[*trip.Trip]
+	//Persons      *photo.Collection[*person.Person]
+	//Pinned       *photo.Collection[*pinned.Pinned]
+	//SharedAlbums *photo.Collection[*shared_album.SharedAlbum]
+	//cameras      map[string]*ali.PHCollection[camera.Camera]
+	statsMu sync.Mutex
 }
 
 func New(userID uuid.UUID) (*Manager, error) {
@@ -49,36 +44,36 @@ func New(userID uuid.UUID) (*Manager, error) {
 		}
 	}
 
-	a := config.GetUserMetadataPath(userID.String(), "assets")
+	//a := config.GetUserMetadataPath(userID.String(), "")
+	path := config.GetUserMetadataPath(userID.String(), "")
+
 	var err error
-	m.Assets, err = collection_manager_index.New[*asset.Asset, *asset.Index](a)
+	m.PhotosManager, err = photo.NewManager(path)
 	if err != nil {
 		panic(err)
 	}
 
-	all := m.Assets.GetAllIndexes()
-	fmt.Println(len(all))
+	m.AlbumsManager, err = album.NewManager(m.PhotosManager, path)
+	if err != nil {
+		panic(err)
+	}
 
-	path := config.GetUserMetadataPath(userID.String(), "")
-	m.Album = asset.NewCollection[*album.Album](path + "/albums")
-	m.SharedAlbums = asset.NewCollection[*shared_album.SharedAlbum](path + "/shared_albums")
-	m.Trips = asset.NewCollection[*trip.Trip](path + "/trips")
-	m.Persons = asset.NewCollection[*person.Person](path + "/persons")
-	m.Pinned = asset.NewCollection[*pinned.Pinned](path + "/pins")
+	//m.SharedAlbums = photo.NewCollection[*shared_album.SharedAlbum](path, "shared_album")
+	//m.Trips = photo.NewCollection[*trip.Trip](path, "trip")
+	//m.Persons = photo.NewCollection[*person.Person](path, "person")
+	//m.Pinned = photo.NewCollection[*pinned.Pinned](path, "pinned")
 
-	m.prepareAlbums()
-	m.prepareTrips()
-	m.preparePersons()
-	//m.prepareCameras()
-	m.preparePinned()
+	//m.prepareAlbums()
+	//m.prepareTrips()
+	//m.preparePersons()
+	//m.preparePinned()
 
 	return m, nil
 }
 
 func (m *Manager) UpdateCollections() {
-	m.prepareAlbums()
-	//m.prepareCameras()
-	m.prepareTrips()
-	m.preparePersons()
-	m.preparePinned()
+	//m.prepareAlbums()
+	//m.prepareTrips()
+	//m.preparePersons()
+	//m.preparePinned()
 }
