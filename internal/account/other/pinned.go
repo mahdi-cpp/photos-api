@@ -58,7 +58,7 @@ func (m *account.Manager) preparePinned() {
 			a := photo.Photo{
 				ID: uuid.Nil,
 				FileInfo: photo.FileInfo{
-					BaseURL:  "map",
+					URL:      "map",
 					MimeType: "map",
 				},
 			}

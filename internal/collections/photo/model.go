@@ -5,22 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mahdi-cpp/iris-tools/collection_manager_memory"
 )
 
-func (i *Index) GetID() uuid.UUID         { return i.ID }
-func (i *Index) SetID(id uuid.UUID)       { i.ID = id }
-func (i *Index) SetCreatedAt(t time.Time) { i.CreatedAt = t }
-func (i *Index) SetUpdatedAt(t time.Time) { i.UpdatedAt = t }
-func (i *Index) GetRecordSize() int       { return 400 }
-
-func (p *Photo) GetID() uuid.UUID         { return p.ID }
-func (p *Photo) SetID(id uuid.UUID)       { p.ID = id }
-func (p *Photo) SetCreatedAt(t time.Time) { p.CreatedAt = t }
-func (p *Photo) SetUpdatedAt(t time.Time) { p.UpdatedAt = t }
-func (p *Photo) GetRecordSize() int       { return 2048 }
-
-func (a *Join) GetRecordSize() int { return 100 }
+func (a *Join) GetRecordSize() int { return 110 }
 func (a *Join) GetCompositeKey() string {
 	return fmt.Sprintf("%s:%s", a.ParentID.String(), a.PhotoID.String())
 }
@@ -30,11 +17,17 @@ type Join struct {
 	PhotoID  uuid.UUID `json:"photoId"`
 }
 
+func (i *Index) GetID() uuid.UUID         { return i.ID }
+func (i *Index) SetID(id uuid.UUID)       { i.ID = id }
+func (i *Index) SetCreatedAt(t time.Time) { i.CreatedAt = t }
+func (i *Index) SetUpdatedAt(t time.Time) { i.UpdatedAt = t }
+func (i *Index) GetRecordSize() int       { return 400 }
+
 type Index struct {
 	ID                  uuid.UUID `json:"id"`
 	UserID              uuid.UUID `json:"userId"`
-	CameraMake          string    `json:"cameraMake,omitempty"`
-	CameraModel         string    `json:"cameraModel,omitempty"`
+	CameraMake          string    `json:"cameraMake"`
+	CameraModel         string    `json:"cameraModel"`
 	IsCamera            bool      `json:"isCamera"`
 	IsFavorite          bool      `json:"isFavorite"`
 	IsScreenshot        bool      `json:"isScreenshot"`
@@ -46,6 +39,12 @@ type Index struct {
 	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
+func (p *Photo) GetID() uuid.UUID         { return p.ID }
+func (p *Photo) SetID(id uuid.UUID)       { p.ID = id }
+func (p *Photo) SetCreatedAt(t time.Time) { p.CreatedAt = t }
+func (p *Photo) SetUpdatedAt(t time.Time) { p.UpdatedAt = t }
+func (p *Photo) GetRecordSize() int       { return 2048 }
+
 type Photo struct {
 	ID           uuid.UUID  `json:"id" index:"true"`
 	UserID       uuid.UUID  `json:"userId" index:"true"`
@@ -54,12 +53,12 @@ type Photo struct {
 	VideoInfo    VideoInfo  `json:"videoInfo"`
 	CameraInfo   CameraInfo `json:"cameraInfo"`
 	Location     Location   `json:"location"`
+	CameraMake   string     `json:"cameraMake,omitempty"`
+	CameraModel  string     `json:"cameraModel,omitempty"`
 	IsCamera     bool       `json:"isCamera"`
 	IsFavorite   bool       `json:"isFavorite"`
 	IsScreenshot bool       `json:"isScreenshot"`
 	IsHidden     bool       `json:"isHidden"`
-	CameraMake   string     `json:"cameraMake,omitempty"`
-	CameraModel  string     `json:"cameraModel,omitempty"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
 	DeletedAt    time.Time  `json:"deletedAt"`
@@ -67,9 +66,11 @@ type Photo struct {
 }
 
 type FileInfo struct {
-	BaseURL  string `json:"baseURL"`
-	FileSize string `json:"fileSize"`
-	MimeType string `json:"mimeType"`
+	OriginalURL  string `json:"originalUrl"`
+	ThumbnailURL string `json:"thumbnailURL"`
+	FileName     string `json:"fileName"`
+	FileSize     int    `json:"fileSize"`
+	MimeType     string `json:"mimeType"`
 }
 
 type ImageInfo struct {
@@ -80,6 +81,7 @@ type ImageInfo struct {
 	ColorSpace      string `json:"colorSpace,omitempty"`
 	EncodingProcess string `json:"encodingProcess,omitempty"`
 }
+
 type CameraInfo struct {
 	Software         string    `json:"software,omitempty"`
 	DateTimeOriginal time.Time `json:"dateTimeOriginal,omitempty"`
@@ -119,32 +121,23 @@ type Location struct {
 	Electronic int     `json:"electronic,omitempty"`
 }
 
-type Collection[T collection_manager_memory.CollectionItem] struct {
-	CollectionMemory *collection_manager_memory.Manager[T]
-	CoverPhotoArray  map[uuid.UUID][]*Photo
+// ---
+
+type Request struct {
+	Directory uuid.UUID `json:"directory"`
+	IsVideo   bool      `json:"isVideo"`
+	//Hash      string    `json:"hash"`
 }
 
-func NewCollection[T collection_manager_memory.CollectionItem](path string, fileName string) *Collection[T] {
-
-	c, err := collection_manager_memory.New[T](path, fileName)
-	if err != nil {
-		panic(err)
-	}
-
-	a := &Collection[T]{
-		CollectionMemory: c,
-		CoverPhotoArray:  make(map[uuid.UUID][]*Photo),
-	}
-
-	return a
+type Response struct {
+	Message  string    `json:"message,omitempty"`
+	Filename string    `json:"filename,omitempty"`
+	ID       uuid.UUID `json:"id,omitempty"`
+	Error    string    `json:"error,omitempty"`
 }
 
-type PHCollectionList[T any] struct {
-	Status      string             `json:"status"` // "success" or "error"
-	Collections []*PHCollection[T] `json:"collections"`
-}
-
-type PHCollection[T any] struct {
-	Item   T        `json:"item"`   // Generic items
-	Photos []*Photo `json:"photos"` // Specific photos
+type DirectoryRequest struct {
+	ID      uuid.UUID `json:"id"`
+	Message string    `json:"message"`
+	Errors  string    `json:"errors,omitempty"`
 }

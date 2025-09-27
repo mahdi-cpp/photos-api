@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/mahdi-cpp/iris-tools/mygin"
-	"github.com/mahdi-cpp/photos-api/internal/api/handler"
+	"github.com/mahdi-cpp/photos-api/internal/api/photo"
 	"github.com/mahdi-cpp/photos-api/internal/application"
 )
 
@@ -25,11 +25,12 @@ func main() {
 	// Create a new engine with default middleware
 	router := mygin.Default()
 
-	assetHandler := handler.NewPhotoHandler(appManager)
+	assetHandler := photo_handler.New(appManager)
 	assetRoute(assetHandler)
 
 	router.POST("/api/photos", assetHandler.Create)
-	router.GET("api/photos", assetHandler.Read)
+	//router.GET("/api/photos/photoId", assetHandler.Read)
+	router.GET("/api/photos", assetHandler.ReadAll)
 
 	err = router.Run(":50151")
 	if err != nil {
@@ -60,7 +61,7 @@ func main() {
 	//startServer(router)
 }
 
-func assetRoute(h *handler.PhotoHandler) {
+func assetRoute(h *photo_handler.PhotoHandler) {
 
 	//api := router.Group("")
 

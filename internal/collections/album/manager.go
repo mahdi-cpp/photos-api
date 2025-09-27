@@ -9,8 +9,8 @@ import (
 
 type Manager struct {
 	photoManager *photo.Manager
-	album        *collection_manager_memory.Manager[*Album]
-	Join         *collection_manager_join.Manager[*photo.Join]
+	collection   *collection_manager_memory.Manager[*Album]
+	join         *collection_manager_join.Manager[*photo.Join]
 }
 
 func NewManager(photoManager *photo.Manager, path string) (*Manager, error) {
@@ -20,7 +20,12 @@ func NewManager(photoManager *photo.Manager, path string) (*Manager, error) {
 	}
 
 	var err error
-	manager.album, err = collection_manager_memory.New[*Album](path, "album")
+	manager.collection, err = collection_manager_memory.New[*Album](path, "collection")
+	if err != nil {
+		return nil, err
+	}
+
+	manager.join, err = collection_manager_join.New[*photo.Join](path, "join")
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +34,7 @@ func NewManager(photoManager *photo.Manager, path string) (*Manager, error) {
 }
 
 func (m *Manager) Create(album *Album) (*Album, error) {
-	item, err := m.album.Create(album)
+	item, err := m.collection.Create(album)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +42,7 @@ func (m *Manager) Create(album *Album) (*Album, error) {
 }
 
 func (m *Manager) Read(id uuid.UUID) (*Album, error) {
-	item, err := m.album.Read(id)
+	item, err := m.collection.Read(id)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +51,7 @@ func (m *Manager) Read(id uuid.UUID) (*Album, error) {
 }
 
 func (m *Manager) ReadAll() ([]*Album, error) {
-	items, err := m.album.ReadAll()
+	items, err := m.collection.ReadAll()
 	if err != nil {
 		return nil, err
 	}
@@ -56,14 +61,14 @@ func (m *Manager) ReadAll() ([]*Album, error) {
 
 func (m *Manager) Update(with UpdateOptions) (*Album, error) {
 
-	item, err := m.album.Read(with.ID)
+	item, err := m.collection.Read(with.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	Update(item, with)
 
-	create, err := m.album.Update(item)
+	create, err := m.collection.Update(item)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +76,7 @@ func (m *Manager) Update(with UpdateOptions) (*Album, error) {
 }
 
 func (m *Manager) Delete(id uuid.UUID) error {
-	err := m.album.Delete(id)
+	err := m.collection.Delete(id)
 	if err != nil {
 		return err
 	}
@@ -81,33 +86,56 @@ func (m *Manager) Delete(id uuid.UUID) error {
 
 //--- photo
 
-func (m *Manager) AddItem(albumID, photoID uuid.UUID) error {
+func (m *Manager) AddPhoto(albumID, photoID uuid.UUID) error {
 
 	j := &photo.Join{
 		ParentID: albumID,
 		PhotoID:  photoID,
 	}
 
-	_, err := m.Join.Create(j)
+	_, err := m.join.Create(j)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *Manager) ReadCollection(albumID uuid.UUID, with *photo.SearchOptions) (*photo.PHCollection[*Album], error) {
+func (m *Manager) DeletePhoto(albumID, photoID uuid.UUID) error {
 
-	item, err := m.album.Read(albumID)
+	j := &photo.Join{
+		ParentID: albumID,
+		PhotoID:  photoID,
+	}
+
+	err := m.join.Delete(j.GetCompositeKey())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Manager) ReadCollection(id uuid.UUID) (*Album, error) {
+	item, err := m.collection.Read(id)
 	if err != nil {
 		return nil, err
 	}
 
-	all, err := m.Join.GetByParentID(albumID)
+	return item, nil
+}
+
+func (m *Manager) ReadCollections(albumID uuid.UUID, with *photo.SearchOptions) (*photo.PHCollection[*Album], error) {
+
+	item, err := m.collection.Read(albumID)
 	if err != nil {
 		return nil, err
 	}
 
-	photos, err := m.photoManager.ReadAlbumPhotos(all, with)
+	all, err := m.join.GetByParentID(item.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	photos, err := m.photoManager.ReadJoinPhotos(all, with)
 	if err != nil {
 		return nil, err
 	}
@@ -119,38 +147,3 @@ func (m *Manager) ReadCollection(albumID uuid.UUID, with *photo.SearchOptions) (
 
 	return a, nil
 }
-
-func (m *Manager) ReadCollections(id uuid.UUID) (*Album, error) {
-	item, err := m.album.Read(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return item, nil
-}
-
-//func (m *Manager) PrepareAlbums() {
-//
-//	items, err := m.album.ReadAll()
-//	if err != nil {
-//	}
-//
-//	for _, item := range items {
-//
-//		with := &photo.SearchOptions{
-//			UserID:    m.userID,
-//			Albums:    []string{item.ID.String()},
-//			Sort:      "createdAt",
-//			SortOrder: "start",
-//			Size:      6,
-//		}
-//
-//		filterPhotos, err := m.ReadAll(with)
-//		if err != nil {
-//			fmt.Printf("Error getting all person_test: %v\n", err)
-//			return
-//		}
-//		item.Count = len(filterPhotos)
-//		m.album.CoverPhotoArray[item.ID] = filterPhotos
-//	}
-//}

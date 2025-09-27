@@ -1,4 +1,4 @@
-package handler
+package photo_handler
 
 import (
 	"fmt"
@@ -19,9 +19,9 @@ func TestAssetHandler_Create(t *testing.T) {
 
 	body := &photo.Photo{
 		FileInfo: photo.FileInfo{
-			BaseURL:  "",
-			FileSize: "1000",
-			MimeType: "voice/mp3",
+			OriginalURL: "",
+			FileSize:    1000,
+			MimeType:    "voice/mp3",
 		},
 		ImageInfo: photo.ImageInfo{
 			Width:       1000,
@@ -55,4 +55,20 @@ func TestAssetHandler_Create(t *testing.T) {
 	}
 
 	fmt.Println("new photo id: ", a.ID)
+}
+
+func TestAssetHandler_Read(t *testing.T) {
+
+	currentURL := baseURL + "/photos/api/photos"
+
+	with := &photo.SearchOptions{
+		Sort:      "id",
+		SortOrder: "desc",
+	}
+
+	_, err := help.MakeRequestParam("GET", currentURL, with)
+	if err != nil {
+		t.Fatalf("read request failed: %v", err)
+	}
+
 }

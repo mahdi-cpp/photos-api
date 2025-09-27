@@ -1,14 +1,14 @@
-package handler
+package photo_handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/mygin"
-	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
-
 	"github.com/mahdi-cpp/photos-api/internal/application"
+	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/help"
 )
 
@@ -21,7 +21,7 @@ type PhotoHandler struct {
 	appManager *application.AppManager
 }
 
-func NewPhotoHandler(manager *application.AppManager) *PhotoHandler {
+func New(manager *application.AppManager) *PhotoHandler {
 	return &PhotoHandler{appManager: manager}
 }
 
@@ -80,7 +80,7 @@ func (h *PhotoHandler) Read(c *mygin.Context) {
 		return
 	}
 
-	item, err := accountManager.Read(id)
+	item, err := accountManager.PhotosManager.Read(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, mygin.H{"error": "Photo not found"})
 		return
@@ -89,46 +89,67 @@ func (h *PhotoHandler) Read(c *mygin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
-//func (h *PhotoHandler) ReadAll(c *gin.Context) {
-//
-//	userID, ok := help.GetUserID(c)
-//	if !ok {
-//		help.AbortWithUserIDInvalid(c)
-//		return
-//	}
-//
-//	fmt.Println("ReadAll userID: ", userID)
-//
-//	var with *photo.SearchOptions
-//	if err := c.ShouldBindJSON(&with); err != nil {
-//		help.AbortWithRequestInvalid(c)
-//		return
-//	}
-//
-//	userManager, err := h.appManager.GetAccountManager(c, userID)
-//	if err != nil {
-//		fmt.Println(err.Error())
-//		c.JSON(http.StatusBadRequest, mygin.H{"error": err.Error()})
-//		return
-//	}
-//
-//	items, err := userManager.ReadAll(with)
-//	if err != nil {
-//		c.JSON(http.StatusInternalServerError, mygin.H{"error": "failed account Read"})
-//		return
-//	}
-//
-//	fmt.Println("ReadAll count", len(items))
-//
-//	//result := photo.PHFetchResult[*photo.PhotosManager]{
-//	//	Items:  items,
-//	//	Total:  total,
-//	//	Size:  100,
-//	//	Page: 100,
-//	//}
-//	//c.JSON(http.StatusOK, items)
-//	c.JSON(http.StatusOK, mygin.H{"data": items})
-//}
+func (h *PhotoHandler) ReadAll(c *mygin.Context) {
+
+	fmt.Println("1")
+
+	userID, ok := help.GetUserID(c)
+	if !ok {
+		help.AbortWithUserIDInvalid(c)
+		fmt.Println("user id invalid")
+		return
+	}
+
+	fmt.Println("2")
+
+	page, err := c.GetQueryInt("page")
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+	}
+	size, err := c.GetQueryInt("size")
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+	}
+
+	fmt.Println("page:", page)
+	fmt.Println("size:", size)
+
+	with := &photo.SearchOptions{
+		Page: page,
+		Size: size,
+	}
+
+	//err := json.NewDecoder(c.Request.Body).Decode(&with)
+	//if err != nil {
+	//	fmt.Println("%w", err)
+	//	help.AbortWithRequestInvalid(c)
+	//	return
+	//}
+
+	fmt.Println("3")
+
+	accountManager, err := h.appManager.GetAccountManager(userID)
+	if err != nil {
+		fmt.Printf("Decode error: %v\n", err)
+		c.JSON(http.StatusBadRequest, mygin.H{"error": err.Error()})
+		return
+	}
+
+	items, err := accountManager.PhotosManager.ReadAll(with)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, mygin.H{"error": "failed account Read"})
+		return
+	}
+
+	for _, item := range items {
+		fmt.Println(item.FileInfo.OriginalURL)
+	}
+
+	fmt.Println("ReadAll count", len(items))
+
+	c.JSON(http.StatusOK, items)
+}
+
 //
 //func (h *PhotoHandler) Update(c *gin.Context) {
 //

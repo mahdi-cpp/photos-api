@@ -9,15 +9,15 @@ import (
 )
 
 type Manager struct {
-	mu     sync.RWMutex
-	photos *collection_manager_index.Manager[*Photo, *Index]
+	mu         sync.RWMutex
+	collection *collection_manager_index.Manager[*Photo, *Index]
 }
 
 func NewManager(path string) (*Manager, error) {
 	manager := &Manager{}
 
 	var err error
-	manager.photos, err = collection_manager_index.New[*Photo, *Index](path)
+	manager.collection, err = collection_manager_index.New[*Photo, *Index](path)
 	if err != nil {
 		return nil, err
 	}
@@ -25,10 +25,23 @@ func NewManager(path string) (*Manager, error) {
 	return manager, nil
 }
 
-func (m *Manager) Read(id uuid.UUID) (*Photo, error) {
-	item, err := m.photos.Read(id)
+func (m *Manager) Create(photo *Photo) (*Photo, error) {
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	create, err := m.collection.Create(photo)
 	if err != nil {
-		fmt.Printf("Error read photos item: %v\n", err)
+		return nil, err
+	}
+
+	return create, nil
+}
+
+func (m *Manager) Read(id uuid.UUID) (*Photo, error) {
+	item, err := m.collection.Read(id)
+	if err != nil {
+		fmt.Printf("Error read collection item: %v\n", err)
 		return nil, err
 	}
 
@@ -37,13 +50,13 @@ func (m *Manager) Read(id uuid.UUID) (*Photo, error) {
 
 func (m *Manager) ReadAll(with *SearchOptions) ([]*Photo, error) {
 
-	all := m.photos.GetAllIndexes()
+	all := m.collection.GetAllIndexes()
 	var photos []*Photo
 
 	filterIndexes := Search(all, with)
 
 	for _, index := range filterIndexes {
-		read, err := m.photos.Read(index.ID)
+		read, err := m.collection.Read(index.ID)
 		if err != nil {
 			return nil, fmt.Errorf("error reading message %s: %w", index.ID, err)
 		}
@@ -60,14 +73,14 @@ func (m *Manager) Update(with UpdateOptions) (string, error) {
 
 	for _, id := range with.PhotosIds {
 
-		item, err := m.photos.Read(id)
+		item, err := m.collection.Read(id)
 		if err != nil {
 			continue
 		}
 
 		Update(item, with)
 
-		_, err = m.photos.Update(item)
+		_, err = m.collection.Update(item)
 		if err != nil {
 			return "", err
 		}
@@ -91,13 +104,13 @@ func (m *Manager) Delete(id uuid.UUID) error {
 	//}
 
 	// Delete person_test file
-	//assetPath := filepath.Join(m.config.PhotosDir, person_test.Filename)
+	//assetPath := filepath.join(m.config.PhotosDir, person_test.Filename)
 	//if err := os.Remove(assetPath); err != nil {
 	//	return fmt.Errorf("failed to delete person_test file: %w", err)
 	//}
 
 	// Delete metadata
-	err := m.photos.Delete(id)
+	err := m.collection.Delete(id)
 	if err != nil {
 		return fmt.Errorf("failed to delete metadata: %w", err)
 	}
@@ -127,7 +140,7 @@ func (m *Manager) ReadByIds(ids []uuid.UUID) ([]*Photo, error) {
 	photos := make([]*Photo, 0, len(ids))
 
 	for _, id := range ids {
-		read, err := m.photos.Read(id)
+		read, err := m.collection.Read(id)
 		if err != nil {
 			return nil, fmt.Errorf("error reading message %s: %w", id, err)
 		}
@@ -137,13 +150,13 @@ func (m *Manager) ReadByIds(ids []uuid.UUID) ([]*Photo, error) {
 	return photos, nil
 }
 
-func (m *Manager) ReadAlbumPhotos(joins []*Join, with *SearchOptions) ([]*Photo, error) {
+func (m *Manager) ReadJoinPhotos(joins []*Join, with *SearchOptions) ([]*Photo, error) {
 
 	var photos []*Photo
 	var indexes []*Index
 
 	for _, join := range joins {
-		index, err := m.photos.ReadIndex(join.PhotoID)
+		index, err := m.collection.ReadIndex(join.PhotoID)
 		if err != nil {
 			return nil, err
 		}
@@ -153,7 +166,7 @@ func (m *Manager) ReadAlbumPhotos(joins []*Join, with *SearchOptions) ([]*Photo,
 	filterIndexes := Search(indexes, with)
 
 	for _, index := range filterIndexes {
-		read, err := m.photos.Read(index.ID)
+		read, err := m.collection.Read(index.ID)
 		if err != nil {
 			return nil, fmt.Errorf("error reading message %s: %w", index.ID, err)
 		}
@@ -161,4 +174,8 @@ func (m *Manager) ReadAlbumPhotos(joins []*Join, with *SearchOptions) ([]*Photo,
 	}
 
 	return photos, nil
+}
+
+func (m *Manager) ReadIndexes() []*Index {
+	return m.collection.GetAllIndexes()
 }

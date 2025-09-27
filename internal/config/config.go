@@ -11,6 +11,7 @@ const (
 	users       = "users"
 	Metadata    = "metadata"
 	Version     = "v3"
+	RootDir     = "/app/iris/com.iris.photos/"
 )
 
 func GetPath(file string) string {

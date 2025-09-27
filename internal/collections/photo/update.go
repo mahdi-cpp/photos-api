@@ -12,19 +12,19 @@ type UpdateOptions struct {
 
 	CameraMake     *string `json:"cameraMake,omitempty"`
 	CameraModel    *string `json:"cameraModel,omitempty"`
-	IsCamera       *bool
-	IsFavorite     *bool
-	IsScreenshot   *bool
-	IsHidden       *bool
-	NotInOnePhotos *bool
+	IsCamera       *bool   `json:"isCamera,omitempty"`
+	IsFavorite     *bool   `json:"isFavorite,omitempty"`
+	IsScreenshot   *bool   `json:"isScreenshot,omitempty"`
+	IsHidden       *bool   `json:"isHidden,omitempty"`
+	NotInOnePhotos *bool   `json:"notInOnePhotos,omitempty"`
 
-	Trips       *[]string `json:"trips,omitempty"`       // Full trip replacement
-	AddTrips    []string  `json:"addTrips,omitempty"`    // Trips to add
-	RemoveTrips []string  `json:"removeTrips,omitempty"` // Trips to remove
-
-	Persons       *[]string `json:"persons,omitempty"`       // Full Person replacement
-	AddPersons    []string  `json:"addPersons,omitempty"`    // Persons to add
-	RemovePersons []string  `json:"removePersons,omitempty"` // Persons to remove
+	//Trips       *[]string `json:"trips,omitempty"`       // Full trip replacement
+	//AddTrips    []string  `json:"addTrips,omitempty"`    // Trips to add
+	//RemoveTrips []string  `json:"removeTrips,omitempty"` // Trips to remove
+	//
+	//Persons       *[]string `json:"persons,omitempty"`       // Full Person replacement
+	//AddPersons    []string  `json:"addPersons,omitempty"`    // Persons to add
+	//RemovePersons []string  `json:"removePersons,omitempty"` // Persons to remove
 }
 
 // Initialize updater

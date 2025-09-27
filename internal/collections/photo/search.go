@@ -10,32 +10,27 @@ import (
 type SearchOptions struct {
 	ID             uuid.UUID
 	UserID         uuid.UUID
-	TextQuery      *string
+	TextQuery      *string `json:"textQuery,omitempty"`
 	FileSize       *string `json:"fileSize,omitempty"`
 	MimeType       *string `json:"mimeType,omitempty"`
 	CameraMake     *string `json:"cameraMake,omitempty"`
 	CameraModel    *string `json:"cameraModel,omitempty"`
-	IsCamera       *bool
-	IsFavorite     *bool
-	IsScreenshot   *bool
-	IsHidden       *bool
-	IsLandscape    *bool
-	NotInOnePhoto  *bool
-	HideScreenshot *bool `json:"hideScreenshot"`
-	Albums         []string
-	Trips          []string
-	Persons        []string
+	IsCamera       *bool   `json:"isCamera,omitempty"`
+	IsFavorite     *bool   `json:"isFavorite,omitempty"`
+	IsScreenshot   *bool   `json:"isScreenshot,omitempty"`
+	IsHidden       *bool   `json:"isHidden,omitempty"`
+	IsLandscape    *bool   `json:"isLandscape,omitempty"`
+	NotInOnePhoto  *bool   `json:"notInOnePhoto,omitempty"`
+	HideScreenshot *bool   `json:"hideScreenshot"`
 
 	// Date filters
 	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
 	CreatedBefore *time.Time `json:"createdBefore,omitempty"`
 	ActiveAfter   *time.Time `json:"activeAfter,omitempty"`
 
-	// Pagination
 	Page int `json:"page,omitempty"`
 	Size int `json:"size,omitempty"`
 
-	// Sorting
 	Sort      string `json:"sort,omitempty"`      // "title", "created", "members", "lastActivity"
 	SortOrder string `json:"sortOrder,omitempty"` // "asc" or "desc"
 }
@@ -152,7 +147,7 @@ func Search(index []*Index, with *SearchOptions) []*Index {
 		}
 	}
 
-	// Extract final photos
+	// Extract final collection
 	final := make([]*Index, len(results))
 	for i, item := range results {
 		final[i] = item.Value
