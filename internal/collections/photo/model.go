@@ -53,8 +53,8 @@ type Photo struct {
 	VideoInfo    VideoInfo  `json:"videoInfo"`
 	CameraInfo   CameraInfo `json:"cameraInfo"`
 	Location     Location   `json:"location"`
-	CameraMake   string     `json:"cameraMake,omitempty"`
-	CameraModel  string     `json:"cameraModel,omitempty"`
+	CameraMake   string     `json:"cameraMake"`
+	CameraModel  string     `json:"cameraModel"`
 	IsCamera     bool       `json:"isCamera"`
 	IsFavorite   bool       `json:"isFavorite"`
 	IsScreenshot bool       `json:"isScreenshot"`
@@ -66,7 +66,7 @@ type Photo struct {
 }
 
 type FileInfo struct {
-	OriginalURL  string `json:"originalUrl"`
+	OriginalURL  string `json:"originalURL"`
 	ThumbnailURL string `json:"thumbnailURL"`
 	FileName     string `json:"fileName"`
 	FileSize     int    `json:"fileSize"`

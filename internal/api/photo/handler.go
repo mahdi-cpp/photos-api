@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/mahdi-cpp/iris-tools/mygin"
 	"github.com/mahdi-cpp/photos-api/internal/application"
 	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/help"
+	"github.com/mahdi-cpp/photos-api/mygin"
 )
 
 type Error struct {
@@ -44,7 +44,7 @@ func (h *PhotoHandler) Create(c *mygin.Context) {
 	}
 
 	var request *photo.Photo
-	err = json.NewDecoder(c.Request.Body).Decode(&request)
+	err = json.NewDecoder(c.Req.Body).Decode(&request)
 	if err != nil {
 		SendError(c, err.Error(), http.StatusBadRequest)
 		return
@@ -139,10 +139,6 @@ func (h *PhotoHandler) ReadAll(c *mygin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, mygin.H{"error": "failed account Read"})
 		return
-	}
-
-	for _, item := range items {
-		fmt.Println(item.FileInfo.OriginalURL)
 	}
 
 	fmt.Println("ReadAll count", len(items))

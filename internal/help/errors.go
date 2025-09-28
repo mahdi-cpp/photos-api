@@ -3,7 +3,7 @@ package help
 import (
 	"net/http"
 
-	"github.com/mahdi-cpp/iris-tools/mygin"
+	"github.com/mahdi-cpp/photos-api/mygin"
 )
 
 const (

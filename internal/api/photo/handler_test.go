@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/goccy/go-json"
 	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/help"
 )
-
-const baseURL = "http://localhost:50000"
 
 func TestAssetHandler_Create(t *testing.T) {
 
@@ -57,9 +56,12 @@ func TestAssetHandler_Create(t *testing.T) {
 	fmt.Println("new photo id: ", a.ID)
 }
 
+const baseURL = "http://localhost:50151"
+
 func TestAssetHandler_Read(t *testing.T) {
 
-	currentURL := baseURL + "/photos/api/photos"
+	// 💡 مسیر را بدون اسلش انتهایی که در روتر ثبت نشده است، تنظیم کنید
+	currentURL := baseURL + "/api/photos"
 
 	with := &photo.SearchOptions{
 		Sort:      "id",
@@ -70,5 +72,4 @@ func TestAssetHandler_Read(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read request failed: %v", err)
 	}
-
 }

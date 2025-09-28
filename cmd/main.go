@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/mahdi-cpp/iris-tools/mygin"
+	album_handler "github.com/mahdi-cpp/photos-api/internal/api/album"
 	"github.com/mahdi-cpp/photos-api/internal/api/photo"
 	"github.com/mahdi-cpp/photos-api/internal/application"
+	"github.com/mahdi-cpp/photos-api/mygin"
 )
 
 func main() {
@@ -23,19 +25,26 @@ func main() {
 
 	//ginInit()
 	// Create a new engine with default middleware
-	router := mygin.Default()
+	router := mygin.New()
 
 	assetHandler := photo_handler.New(appManager)
+	albumHandler := album_handler.New(appManager)
+
 	assetRoute(assetHandler)
 
 	router.POST("/api/photos", assetHandler.Create)
 	//router.GET("/api/photos/photoId", assetHandler.Read)
 	router.GET("/api/photos", assetHandler.ReadAll)
 
-	err = router.Run(":50151")
-	if err != nil {
-		fmt.Println(err)
-	}
+	router.POST("/api/albums/photos", albumHandler.AddPhotos)
+	router.POST("/api/albums", albumHandler.Create)
+
+	router.GET("/api/albums/", albumHandler.ReadAll)
+	router.GET("/api/albums/collections", albumHandler.ReadCollections)
+
+	// Start the server
+	fmt.Println("Server is running on http://localhost:50151")
+	log.Fatal(http.ListenAndServe(":50151", router))
 
 	//albumHandler := handler.NewAlbumHandler(appManager)
 	//RegisterAlbumRoutes(albumHandler)

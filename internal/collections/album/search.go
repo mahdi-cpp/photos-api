@@ -50,7 +50,7 @@ func GetLessFunc(sortBy, sortOrder string) search.LessFunction[*Album] {
 	return fn
 }
 
-func BuildAlbumSearch(with SearchOptions) search.Criteria[*Album] {
+func BuildAlbumSearch(with *SearchOptions) search.Criteria[*Album] {
 
 	return func(a *Album) bool {
 
@@ -80,13 +80,13 @@ func BuildAlbumSearch(with SearchOptions) search.Criteria[*Album] {
 	}
 }
 
-func Search(chats []*Album, with SearchOptions) []*Album {
+func Search(items []*Album, with *SearchOptions) []*Album {
 
 	// Build criteria
 	criteria := BuildAlbumSearch(with)
 
 	// Execute search_manager
-	results := search.Find(chats, criteria)
+	results := search.Find(items, criteria)
 
 	// Sort results if needed
 	if with.Sort != "" {

@@ -1,6 +1,8 @@
 package album
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/collection_manager_join"
 	"github.com/mahdi-cpp/iris-tools/collection_manager_memory"
@@ -50,13 +52,14 @@ func (m *Manager) Read(id uuid.UUID) (*Album, error) {
 	return item, nil
 }
 
-func (m *Manager) ReadAll() ([]*Album, error) {
+func (m *Manager) ReadAll(with *SearchOptions) ([]*Album, error) {
 	items, err := m.collection.ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	return items, nil
+	filterItems := Search(items, with)
+	return filterItems, nil
 }
 
 func (m *Manager) Update(with UpdateOptions) (*Album, error) {
@@ -81,12 +84,43 @@ func (m *Manager) Delete(id uuid.UUID) error {
 		return err
 	}
 
+	all, err := m.join.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	for _, item := range all {
+		if item.ParentID == id {
+			err := m.join.Delete(item.GetCompositeKey())
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *Manager) IsExist(id uuid.UUID) error {
+	_, err := m.collection.Read(id)
+	if err != nil {
+		return fmt.Errorf("album not found: %s", id)
+	}
+
 	return nil
 }
 
 //--- photo
 
 func (m *Manager) AddPhoto(albumID, photoID uuid.UUID) error {
+
+	if albumID == uuid.Nil {
+		return fmt.Errorf("albumID must not be an empty string")
+	}
+	if photoID == uuid.Nil {
+		return fmt.Errorf("photoID must not be an empty string")
+	}
 
 	j := &photo.Join{
 		ParentID: albumID,
@@ -123,27 +157,42 @@ func (m *Manager) ReadCollection(id uuid.UUID) (*Album, error) {
 	return item, nil
 }
 
-func (m *Manager) ReadCollections(albumID uuid.UUID, with *photo.SearchOptions) (*photo.PHCollection[*Album], error) {
+func (m *Manager) ReadCollections(with *SearchOptions) ([]*photo.Collection[*Album], error) {
 
-	item, err := m.collection.Read(albumID)
+	items, err := m.collection.ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	all, err := m.join.GetByParentID(item.ID)
-	if err != nil {
-		return nil, err
+	filterItems := Search(items, with)
+
+	var collections []*photo.Collection[*Album]
+
+	for _, item := range filterItems {
+		all, err := m.join.GetByParentID(item.ID)
+		if err != nil {
+			continue
+		}
+
+		item.Count = len(all)
+
+		phSearchOptions := &photo.SearchOptions{
+			Sort:      "id",
+			SortOrder: "desc",
+			Page:      0,
+			Size:      5,
+		}
+		photos, err := m.photoManager.ReadJoinPhotos(all, phSearchOptions)
+		if err != nil {
+			continue
+		}
+		a := &photo.Collection[*Album]{
+			Item:   item,
+			Photos: photos,
+		}
+
+		collections = append(collections, a)
 	}
 
-	photos, err := m.photoManager.ReadJoinPhotos(all, with)
-	if err != nil {
-		return nil, err
-	}
-
-	a := &photo.PHCollection[*Album]{
-		Item:   item,
-		Photos: photos,
-	}
-
-	return a, nil
+	return collections, nil
 }

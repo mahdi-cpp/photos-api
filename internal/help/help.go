@@ -9,7 +9,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/mahdi-cpp/iris-tools/mygin"
+	"github.com/mahdi-cpp/photos-api/mygin"
 )
 
 // GetUserID از Gin context، user_id را به صورت string دریافت می‌کند.

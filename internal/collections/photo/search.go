@@ -79,7 +79,7 @@ func BuildPhotoCriteria(with *SearchOptions) search.Criteria[*Index] {
 			return false
 		}
 
-		// Collection membership filters
+		// Collection_old membership filters
 		//if len(with.AlbumsManager) > 0 {
 		//	found := false
 		//	for _, memberID := range with.AlbumsManager {

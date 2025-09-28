@@ -7,19 +7,19 @@ import (
 	"github.com/mahdi-cpp/iris-tools/collection_manager_memory"
 )
 
-type Collection[T collection_manager_memory.CollectionItem] struct {
+type CollectionOld[T collection_manager_memory.CollectionItem] struct {
 	CollectionMemory *collection_manager_memory.Manager[T]
 	CoverPhotoArray  map[uuid.UUID][]*Photo
 }
 
-func NewCollection[T collection_manager_memory.CollectionItem](path string, fileName string) *Collection[T] {
+func NewCollection[T collection_manager_memory.CollectionItem](path string, fileName string) *CollectionOld[T] {
 
 	c, err := collection_manager_memory.New[T](path, fileName)
 	if err != nil {
 		panic(err)
 	}
 
-	a := &Collection[T]{
+	a := &CollectionOld[T]{
 		CollectionMemory: c,
 		CoverPhotoArray:  make(map[uuid.UUID][]*Photo),
 	}
@@ -28,13 +28,18 @@ func NewCollection[T collection_manager_memory.CollectionItem](path string, file
 }
 
 type PHCollectionList[T any] struct {
-	Status      string             `json:"status"` // "success" or "error"
-	Collections []*PHCollection[T] `json:"collections"`
+	Status      string           `json:"status"` // "success" or "error"
+	Collections []*Collection[T] `json:"collections"`
 }
 
-type PHCollection[T any] struct {
+type Collection[T any] struct {
 	Item   T        `json:"item"`       // Generic items
 	Photos []*Photo `json:"collection"` // Specific collection
+}
+
+type CollectionPhoto struct {
+	ParentID uuid.UUID   `json:"ParentId"`
+	PhotoIDs []uuid.UUID `json:"photoIds"`
 }
 
 // https://chat.deepseek.com/a/chat/s/9b010f32-b23d-4f9b-ae0c-31a9b2c9408c
