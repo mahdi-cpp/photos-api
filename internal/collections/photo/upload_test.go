@@ -33,8 +33,8 @@ func TestMessageCreate(t *testing.T) {
 	//uploadFile := "/app/tmp/assets/0198c111-0fc2-72a2-884e-15821530cfaa.jpg"
 	//singleUpload(t, uploadFile)
 
-	workDir := "/app/tmp/assets/"
-	entries, err := os.ReadDir("/app/tmp/assets/")
+	workDir := "/app/tmp/05/"
+	entries, err := os.ReadDir(workDir)
 	if err != nil {
 		t.Fatal(err)
 	}

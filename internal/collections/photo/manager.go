@@ -176,6 +176,22 @@ func (m *Manager) ReadJoinPhotos(joins []*Join, with *SearchOptions) ([]*Photo, 
 	return photos, nil
 }
 
+func (m *Manager) ReadByIndexes(indexes []*Index, with *SearchOptions) ([]*Photo, error) {
+
+	var photos []*Photo
+	filterIndexes := Search(indexes, with)
+
+	for _, index := range filterIndexes {
+		read, err := m.collection.Read(index.ID)
+		if err != nil {
+			return nil, fmt.Errorf("error reading message %s: %w", index.ID, err)
+		}
+		photos = append(photos, read)
+	}
+
+	return photos, nil
+}
+
 func (m *Manager) ReadIndexes() []*Index {
 	return m.collection.GetAllIndexes()
 }

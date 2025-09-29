@@ -33,8 +33,8 @@ type PHCollectionList[T any] struct {
 }
 
 type Collection[T any] struct {
-	Item   T        `json:"item"`       // Generic items
-	Photos []*Photo `json:"collection"` // Specific collection
+	Item   T        `json:"item"`   // Generic items
+	Photos []*Photo `json:"photos"` // Specific collection
 }
 
 type CollectionPhoto struct {

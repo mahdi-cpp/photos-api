@@ -175,7 +175,6 @@ func (m *Manager) ReadCollections(with *SearchOptions) ([]*photo.Collection[*Alb
 		}
 
 		item.Count = len(all)
-
 		phSearchOptions := &photo.SearchOptions{
 			Sort:      "id",
 			SortOrder: "desc",
@@ -195,4 +194,14 @@ func (m *Manager) ReadCollections(with *SearchOptions) ([]*photo.Collection[*Alb
 	}
 
 	return collections, nil
+}
+
+//--- events
+
+func (m *Manager) OnEvent(Type string) {
+	switch Type {
+	case "created":
+		break
+	case "photo":
+	}
 }

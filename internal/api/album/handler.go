@@ -13,11 +13,6 @@ import (
 	"github.com/mahdi-cpp/photos-api/mygin"
 )
 
-type Error struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-}
-
 type AlbumHandler struct {
 	appManager *application.AppManager
 }
@@ -26,34 +21,30 @@ func New(manager *application.AppManager) *AlbumHandler {
 	return &AlbumHandler{appManager: manager}
 }
 
-func SendError(c *mygin.Context, message string, code int) {
-	c.JSON(http.StatusBadRequest, mygin.H{"message": message, "code": code})
-}
-
 func (h *AlbumHandler) Create(c *mygin.Context) {
 
 	userID, ok := help.GetUserID(c)
 	if !ok {
-		SendError(c, "user id invalid", http.StatusBadRequest)
+		help.SendError(c, "user id invalid", http.StatusBadRequest)
 		return
 	}
 
 	accountManager, err := h.appManager.GetAccountManager(userID)
 	if err != nil {
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	var request *album.Album
 	err = json.NewDecoder(c.Req.Body).Decode(&request)
 	if err != nil {
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	create, err := accountManager.AlbumsManager.Create(request)
 	if err != nil {
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -107,11 +98,11 @@ func (h *AlbumHandler) ReadAll(c *mygin.Context) {
 
 	page, err := c.GetQueryInt("page")
 	if err != nil {
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 	}
 	size, err := c.GetQueryInt("size")
 	if err != nil {
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 	}
 
 	fmt.Println("page:", page)
@@ -153,11 +144,11 @@ func (h *AlbumHandler) ReadCollections(c *mygin.Context) {
 
 	//page, err := c.GetQueryInt("page")
 	//if err != nil {
-	//	SendError(c, err.Error(), http.StatusBadRequest)
+	//	help.SendError(c, err.Error(), http.StatusBadRequest)
 	//}
 	//size, err := c.GetQueryInt("size")
 	//if err != nil {
-	//	SendError(c, err.Error(), http.StatusBadRequest)
+	//	help.SendError(c, err.Error(), http.StatusBadRequest)
 	//}
 
 	accountManager, err := h.appManager.GetAccountManager(userID)
@@ -189,14 +180,14 @@ func (h *AlbumHandler) AddPhotos(c *mygin.Context) {
 
 	userID, ok := help.GetUserID(c)
 	if !ok {
-		SendError(c, "user id invalid", http.StatusBadRequest)
+		help.SendError(c, "user id invalid", http.StatusBadRequest)
 		return
 	}
 
 	accountManager, err := h.appManager.GetAccountManager(userID)
 	if err != nil {
 		fmt.Println("account error:", err)
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -204,21 +195,21 @@ func (h *AlbumHandler) AddPhotos(c *mygin.Context) {
 	err = json.NewDecoder(c.Req.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Decode error:", err)
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = accountManager.AlbumsManager.IsExist(request.ParentID)
 	if err != nil {
 		fmt.Println("Album isExist error:", err)
-		SendError(c, err.Error(), http.StatusBadRequest)
+		help.SendError(c, err.Error(), http.StatusBadRequest)
 	}
 
 	for _, photoID := range request.PhotoIDs {
 		err := accountManager.AlbumsManager.AddPhoto(request.ParentID, photoID)
 		if err != nil {
 			fmt.Println("Album addPhoto error:", err)
-			SendError(c, err.Error(), http.StatusBadRequest)
+			help.SendError(c, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}

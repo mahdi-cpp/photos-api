@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	album_handler "github.com/mahdi-cpp/photos-api/internal/api/album"
+	camera_handler "github.com/mahdi-cpp/photos-api/internal/api/camera"
 	"github.com/mahdi-cpp/photos-api/internal/api/photo"
 	"github.com/mahdi-cpp/photos-api/internal/application"
 	"github.com/mahdi-cpp/photos-api/mygin"
@@ -29,6 +30,7 @@ func main() {
 
 	assetHandler := photo_handler.New(appManager)
 	albumHandler := album_handler.New(appManager)
+	cameraHandler := camera_handler.New(appManager)
 
 	assetRoute(assetHandler)
 
@@ -39,8 +41,10 @@ func main() {
 	router.POST("/api/albums/photos", albumHandler.AddPhotos)
 	router.POST("/api/albums", albumHandler.Create)
 
-	router.GET("/api/albums/", albumHandler.ReadAll)
+	router.GET("/api/albums", albumHandler.ReadAll)
 	router.GET("/api/albums/collections", albumHandler.ReadCollections)
+
+	router.GET("/api/cameras", cameraHandler.ReadCollections)
 
 	// Start the server
 	fmt.Println("Server is running on http://localhost:50151")

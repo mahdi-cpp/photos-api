@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mahdi-cpp/photos-api/internal/collections/album"
+	"github.com/mahdi-cpp/photos-api/internal/collections/camera"
 	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/config"
 )
@@ -18,6 +19,7 @@ type Manager struct {
 
 	PhotosManager *photo.Manager
 	AlbumsManager *album.Manager
+	CameraManager *camera.Manager
 
 	statsMu sync.Mutex
 }
@@ -45,15 +47,22 @@ func New(userID uuid.UUID) (*Manager, error) {
 		panic(err)
 	}
 
+	m.CameraManager, err = camera.NewManager(m.PhotosManager, accountDir)
+	if err != nil {
+		panic(err)
+	}
+
 	return m, nil
 }
 
 func directory(userID uuid.UUID) error {
 
 	// Ensure account directories exist
-	userDirectory := filepath.Join(config.GetUserPath(userID.String()))
-	userMetadata := filepath.Join(userDirectory, "metadata")
-	userDirs := []string{userDirectory, userMetadata}
+	userDir := filepath.Join(config.GetUserPath(userID.String()))
+	metadataDir := filepath.Join(userDir, "metadata")
+	assetsDir := filepath.Join(userDir, "assets")
+	thumbnailsDir := filepath.Join(userDir, "thumbnails")
+	userDirs := []string{userDir, assetsDir, metadataDir, thumbnailsDir}
 
 	for _, dir := range userDirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -61,4 +70,8 @@ func directory(userID uuid.UUID) error {
 		}
 	}
 	return nil
+}
+
+func (m *Manager) OnCreated() {
+	m.AlbumsManager.OnEvent("created")
 }

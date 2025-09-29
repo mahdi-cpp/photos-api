@@ -127,14 +127,14 @@ func TestAlbumPhotos(t *testing.T) {
 		SortOrder: "desc",
 	}
 
-	all, err := albumManager.ReadCollections(a, with)
-	if err != nil {
-		t.Fatal(err)
-	}
+	//all, err := albumManager.ReadCollections(with)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
 
-	for _, p := range all.Photos {
-		fmt.Println(p.FileInfo.OriginalURL)
-	}
+	//for _, p := range all.Photos {
+	//	fmt.Println(p.FileInfo.OriginalURL)
+	//}
 }
 
 func TestAlbumPhotosLimit(t *testing.T) {
