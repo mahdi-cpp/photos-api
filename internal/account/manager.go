@@ -37,7 +37,7 @@ func New(userID uuid.UUID) (*Manager, error) {
 
 	accountDir := config.GetUserMetadataPath(userID.String(), "")
 
-	m.PhotosManager, err = photo.NewManager(accountDir)
+	m.PhotosManager, err = photo.NewManager(m.userID, m.handlePhotoCreation, accountDir)
 	if err != nil {
 		panic(err)
 	}
@@ -72,6 +72,8 @@ func directory(userID uuid.UUID) error {
 	return nil
 }
 
-func (m *Manager) OnCreated() {
-	m.AlbumsManager.OnEvent("created")
+func (m *Manager) handlePhotoCreation(photo *photo.Photo) {
+	fmt.Printf("handling photo creation %s\n", photo.CameraMake)
+	m.AlbumsManager.HandlePhotoCreation(photo)
+	m.CameraManager.HandlePhotoCreation(photo)
 }

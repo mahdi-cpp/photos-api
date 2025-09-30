@@ -32,8 +32,6 @@ func main() {
 	albumHandler := album_handler.New(appManager)
 	cameraHandler := camera_handler.New(appManager)
 
-	assetRoute(assetHandler)
-
 	router.POST("/api/photos", assetHandler.Create)
 	//router.GET("/api/photos/photoId", assetHandler.Read)
 	router.GET("/api/photos", assetHandler.ReadAll)

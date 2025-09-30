@@ -53,8 +53,8 @@ type Photo struct {
 	VideoInfo    VideoInfo  `json:"videoInfo"`
 	CameraInfo   CameraInfo `json:"cameraInfo"`
 	Location     Location   `json:"location"`
-	CameraMake   string     `json:"cameraMake"`
-	CameraModel  string     `json:"cameraModel"`
+	CameraMake   string     `json:"cameraMake" index:"true"`
+	CameraModel  string     `json:"cameraModel" index:"true"`
 	IsCamera     bool       `json:"isCamera"`
 	IsFavorite   bool       `json:"isFavorite"`
 	IsScreenshot bool       `json:"isScreenshot"`
@@ -140,4 +140,9 @@ type DirectoryRequest struct {
 	ID      uuid.UUID `json:"id"`
 	Message string    `json:"message"`
 	Errors  string    `json:"errors,omitempty"`
+}
+
+type UploadInfo struct {
+	Directory string `json:"directory"`
+	Photo     Photo  `json:"photo"`
 }

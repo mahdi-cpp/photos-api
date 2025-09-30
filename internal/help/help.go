@@ -9,6 +9,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/mahdi-cpp/photos-api/internal/config"
 	"github.com/mahdi-cpp/photos-api/mygin"
 )
 
@@ -80,7 +81,7 @@ func MakeRequestBody(method, endpoint string, body interface{}) (*http.Response,
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	req.Header.Set("user_id", "01997cba-6dab-7636-a1f8-2c03174c7b6e")
+	req.Header.Set("user_id", config.TestUserID)
 
 	// Execute request
 	client := &http.Client{}

@@ -12,6 +12,7 @@ const (
 	Metadata    = "metadata"
 	Version     = "v3"
 	RootDir     = "/app/iris/com.iris.photos/"
+	TestUserID  = "018fe65d-8e4a-74b0-8001-c8a7c29367e1"
 )
 
 func GetPath(file string) string {

@@ -15,25 +15,20 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/mahdi-cpp/iris-tools/collection_manager_json"
 	"github.com/mahdi-cpp/photos-api/internal/collections/metadata"
 	"github.com/mahdi-cpp/photos-api/internal/config"
 	"github.com/mahdi-cpp/photos-api/internal/help"
 )
 
-const baseURL = "http://localhost:50103/api/v1/upload/"
-const userID = "018fe65d-8e4a-74b0-8001-c8a7c29367e1"
-const uploadsDir = "/app/iris/services/uploads"
+const uploadURL = "http://localhost:50103/api/v1/upload/"
+const photoApi = "http://localhost:50000/photos/api/photos"
 
 // httpClient is a shared instance of the HTTP client for efficiency.
 var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 func TestMessageCreate(t *testing.T) {
 
-	//uploadFile := "/app/tmp/assets/0198c111-0fc2-72a2-884e-15821530cfaa.jpg"
-	//singleUpload(t, uploadFile)
-
-	workDir := "/app/tmp/05/"
+	workDir := "/app/tmp/10/"
 	entries, err := os.ReadDir(workDir)
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +36,6 @@ func TestMessageCreate(t *testing.T) {
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
-			//fmt.Println(workDir + entry.Name())
 			singleUpload(t, workDir+entry.Name())
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -52,13 +46,8 @@ func singleUpload(t *testing.T, uploadFile string) {
 
 	var err error
 
-	collectionJson, err := collection_manager_json.New[*Photo]("/app/tmp/metadata/")
-	if err != nil {
-		return
-	}
-
 	// 1 create upload directory
-	var apiURL = baseURL + "create"
+	var apiURL = uploadURL + "create"
 	respBody, err := help.MakeRequestParam("POST", apiURL, nil)
 	if err != nil {
 		t.Errorf("create request failed: %v", err)
@@ -71,7 +60,7 @@ func singleUpload(t *testing.T, uploadFile string) {
 
 	// 2 upload image
 	fmt.Println(workDir.ID)
-	apiURL = baseURL + "media"
+	apiURL = uploadURL + "media"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -80,36 +69,20 @@ func singleUpload(t *testing.T, uploadFile string) {
 	if err != nil {
 		t.Errorf("%v", err)
 	}
+
 	if photo == nil {
 		t.Fatal("Expected a non-nil response, but got nil")
 	}
 
-	// 3 create photo and save to database
-	uID, err := uuid.Parse(userID)
-
-	photo.UserID = uID
-	photo.Version = "2"
-
-	var userDirectory = filepath.Join(config.RootDir, "users", userID, "metadata/")
-	photoManager, err := NewManager(userDirectory)
-	if err != nil {
-		t.Fatal(err)
+	body := &UploadInfo{
+		Directory: workDir.ID.String(),
+		Photo:     *photo,
 	}
 
-	create, err := photoManager.Create(photo)
+	// 3 send to photos-api
+	_, err = help.MakeRequestBody("POST", photoApi, body)
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	//// 4 create upload directory
-	err = moveMedia(userID, workDir.ID.String(), photo)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = collectionJson.Create(create)
-	if err != nil {
-		t.Fatal(err)
+		t.Errorf("create request body failed: %v", err)
 	}
 }
 
@@ -145,9 +118,12 @@ func upload(ctx context.Context, client *http.Client, apiURL string, directoryID
 
 	fileName := strings.TrimSuffix(resp.FileInfo.BaseURL, ".jpg")
 
+	photo.CameraMake = resp.Camera.Make
+	photo.CameraModel = resp.Camera.Model
+
 	photo.FileInfo = FileInfo{
-		OriginalURL:  filepath.Join(config.RootDir, "users", userID, "assets", fileName+".jpg"),
-		ThumbnailURL: filepath.Join(config.RootDir, "users", userID, "thumbnails", fileName),
+		OriginalURL:  filepath.Join(config.RootDir, "users", config.TestUserID, "assets", fileName+".jpg"),
+		ThumbnailURL: filepath.Join(config.RootDir, "users", config.TestUserID, "thumbnails", fileName),
 		FileName:     fileName,
 		FileSize:     resp.FileInfo.FileSize,
 		MimeType:     resp.FileInfo.MimeType,
@@ -167,53 +143,6 @@ func upload(ctx context.Context, client *http.Client, apiURL string, directoryID
 	}
 
 	return photo, nil
-}
-
-func moveMedia(userID string, workDir string, photo *Photo) error {
-
-	var id = strings.TrimSuffix(photo.FileInfo.FileName, ".jpg")
-	if photo.FileInfo.MimeType == "image/jpeg" {
-		var name = id + ".jpg"
-		src := filepath.Join(uploadsDir, workDir, name)
-		des := filepath.Join(config.RootDir, "users", userID, "assets", name)
-		err := os.Rename(src, des)
-		if err != nil {
-			return err
-		}
-
-		var thumbnail200 = id + "_270.jpg"
-		srcThumb := filepath.Join(uploadsDir, workDir, thumbnail200)
-		desThumb := filepath.Join(config.RootDir, "users", userID, "thumbnails", thumbnail200)
-		err = os.Rename(srcThumb, desThumb)
-		if err != nil {
-			return err
-		}
-	} else {
-		var name = id + ".mp4"
-		src := filepath.Join(uploadsDir, workDir, name)
-		des := filepath.Join(config.RootDir, "users", userID, "assets", name)
-		err := os.Rename(src, des)
-		if err != nil {
-			return err
-		}
-
-		var thumbnail200 = id + "_270.jpg"
-		srcThumb := filepath.Join(uploadsDir, workDir, thumbnail200)
-		desThumb := filepath.Join(config.RootDir, "users", userID, "thumbnails", thumbnail200)
-		err = os.Rename(srcThumb, desThumb)
-		if err != nil {
-			return err
-		}
-
-		var thumbnail400 = id + "-400.jpg"
-		srcThumb = filepath.Join(uploadsDir, workDir, thumbnail400)
-		desThumb = filepath.Join(config.RootDir, "users", userID, "thumbnails", thumbnail400)
-		err = os.Rename(srcThumb, desThumb)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func MediaUpload(ctx context.Context, client *http.Client, apiURL, filePath string, uploadRequest *Request) (*metadata.Metadata, error) {

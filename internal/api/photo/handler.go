@@ -31,6 +31,8 @@ func SendError(c *mygin.Context, message string, code int) {
 
 func (h *PhotoHandler) Create(c *mygin.Context) {
 
+	fmt.Println("1")
+
 	userID, ok := help.GetUserID(c)
 	if !ok {
 		SendError(c, "user id invalid", http.StatusBadRequest)
@@ -43,12 +45,14 @@ func (h *PhotoHandler) Create(c *mygin.Context) {
 		return
 	}
 
-	var request *photo.Photo
+	var request *photo.UploadInfo
 	err = json.NewDecoder(c.Req.Body).Decode(&request)
 	if err != nil {
 		SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	fmt.Println("request.Directory", request.Directory)
 
 	create, err := accountManager.PhotosManager.Create(request)
 	if err != nil {

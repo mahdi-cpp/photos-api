@@ -1,6 +1,8 @@
 package camera
 
 import (
+	"fmt"
+
 	"github.com/mahdi-cpp/iris-tools/collection_manager_memory"
 	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/help"
@@ -40,10 +42,15 @@ func (m *Manager) load() error {
 	}
 
 	indexes := m.photoManager.ReadIndexes()
+	for _, index := range indexes {
+		fmt.Println(index.CameraMake)
+	}
 
 	m.cameras = []*photo.Collection[*Camera]{}
 
 	for _, item := range all {
+
+		fmt.Println(item.CameraMake)
 
 		photoOptions := &photo.SearchOptions{
 			CameraMake: help.StrPtr(item.CameraMake),
@@ -73,9 +80,7 @@ func (m *Manager) ReadCollections() []*photo.Collection[*Camera] {
 	return m.cameras
 }
 
-//--- events
-
-func (m *Manager) OnCreated(photo *photo.Photo) {
+func (m *Manager) HandlePhotoCreation(photo *photo.Photo) {
 
 	if photo.CameraMake != "" {
 
@@ -89,8 +94,9 @@ func (m *Manager) OnCreated(photo *photo.Photo) {
 
 		if isExist == false { // if is new. create and reload cameras
 			camera := &Camera{
-				Title:      photo.CameraMake + " " + photo.CameraModel,
-				CameraMake: photo.CameraMake,
+				Title:       photo.CameraMake + " " + photo.CameraModel,
+				CameraMake:  photo.CameraMake,
+				CameraModel: photo.CameraModel,
 			}
 			_, err := m.collection.Create(camera)
 			if err != nil {

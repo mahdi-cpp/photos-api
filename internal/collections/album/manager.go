@@ -198,10 +198,6 @@ func (m *Manager) ReadCollections(with *SearchOptions) ([]*photo.Collection[*Alb
 
 //--- events
 
-func (m *Manager) OnEvent(Type string) {
-	switch Type {
-	case "created":
-		break
-	case "photo":
-	}
+func (m *Manager) HandlePhotoCreation(photo *photo.Photo) {
+
 }

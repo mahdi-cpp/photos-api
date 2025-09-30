@@ -9,12 +9,17 @@ import (
 )
 
 type Manager struct {
-	mu         sync.RWMutex
-	collection *collection_manager_index.Manager[*Photo, *Index]
+	mu               sync.RWMutex
+	userID           uuid.UUID
+	collection       *collection_manager_index.Manager[*Photo, *Index]
+	onCreateCallback OnCreateCallback
 }
 
-func NewManager(path string) (*Manager, error) {
-	manager := &Manager{}
+func NewManager(userID uuid.UUID, onCreateCallback OnCreateCallback, path string) (*Manager, error) {
+	manager := &Manager{
+		userID:           userID,
+		onCreateCallback: onCreateCallback,
+	}
 
 	var err error
 	manager.collection, err = collection_manager_index.New[*Photo, *Index](path)
@@ -25,17 +30,27 @@ func NewManager(path string) (*Manager, error) {
 	return manager, nil
 }
 
-func (m *Manager) Create(photo *Photo) (*Photo, error) {
+func (m *Manager) Create(info *UploadInfo) (*Photo, error) {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	create, err := m.collection.Create(photo)
+	info.Photo.Version = "2"
+	info.Photo.IsFavorite = true
+
+	photoCreated, err := m.collection.Create(&info.Photo)
 	if err != nil {
 		return nil, err
 	}
 
-	return create, nil
+	m.onCreateCallback(photoCreated)
+
+	err = moveMedia(m.userID, info.Directory, &info.Photo)
+	if err != nil {
+		return nil, err
+	}
+
+	return photoCreated, nil
 }
 
 func (m *Manager) Read(id uuid.UUID) (*Photo, error) {
@@ -68,6 +83,7 @@ func (m *Manager) ReadAll(with *SearchOptions) ([]*Photo, error) {
 
 func (m *Manager) Update(with UpdateOptions) (string, error) {
 
+	fmt.Println("photo manager Update")
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
