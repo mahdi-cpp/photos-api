@@ -142,15 +142,6 @@ func (h *AlbumHandler) ReadCollections(c *mygin.Context) {
 		return
 	}
 
-	//page, err := c.GetQueryInt("page")
-	//if err != nil {
-	//	help.SendError(c, err.Error(), http.StatusBadRequest)
-	//}
-	//size, err := c.GetQueryInt("size")
-	//if err != nil {
-	//	help.SendError(c, err.Error(), http.StatusBadRequest)
-	//}
-
 	accountManager, err := h.appManager.GetAccountManager(userID)
 	if err != nil {
 		fmt.Printf("Decode error: %v\n", err)
@@ -158,16 +149,18 @@ func (h *AlbumHandler) ReadCollections(c *mygin.Context) {
 		return
 	}
 
-	with := &album.SearchOptions{
-		Sort:      "id",
-		SortOrder: "desc",
-		Page:      1,
-		Size:      20,
+	var with *album.SearchOptions
+	err = json.NewDecoder(c.Req.Body).Decode(&with)
+	if err != nil {
+		help.SendError(c, err.Error(), http.StatusBadRequest)
+		return
 	}
-	items := accountManager.AlbumsManager.ReadCollections(with)
 
-	fmt.Println("Read Album Collections count", len(items))
-	c.JSON(http.StatusOK, items)
+	collections := accountManager.AlbumsManager.ReadCollections(with)
+
+	fmt.Println("Read Album Collections count", len(collections))
+
+	c.JSON(http.StatusOK, mygin.H{"collections": collections})
 }
 
 func (h *AlbumHandler) AddPhotos(c *mygin.Context) {

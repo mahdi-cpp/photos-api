@@ -33,8 +33,9 @@ func (h *CameraHandler) ReadCollections(c *mygin.Context) {
 		return
 	}
 
-	items := accountManager.CameraManager.ReadCollections()
+	collections := accountManager.CameraManager.ReadCollections()
 
-	fmt.Println("Read Camera Collections count", len(items))
-	c.JSON(http.StatusOK, items)
+	fmt.Println("Read Camera Collections count", len(collections))
+
+	c.JSON(http.StatusOK, mygin.H{"collections": collections})
 }

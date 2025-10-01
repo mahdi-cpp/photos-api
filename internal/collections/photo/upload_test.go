@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -34,8 +35,14 @@ func TestMessageCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	sort.Slice(entries, func(i, j int) bool {
+		// Descending sort: return true if entry 'i' should come AFTER entry 'j'
+		return entries[i].Name() < entries[j].Name()
+	})
+
 	for _, entry := range entries {
 		if !entry.IsDir() {
+			fmt.Printf("Skipping %s\n", entry.Name())
 			singleUpload(t, workDir, entry.Name())
 		}
 		time.Sleep(10 * time.Millisecond)
@@ -130,6 +137,7 @@ func upload(ctx context.Context, client *http.Client, apiURL string, directoryID
 
 	photo.CameraMake = resp.Camera.Make
 	photo.CameraModel = resp.Camera.Model
+	photo.DateTimeOriginal = resp.DateTimeOriginal
 
 	photo.FileInfo = FileInfo{
 		OriginalURL:  filepath.Join(config.RootDir, "users", config.TestUserID, "assets", fileName+".jpg"),

@@ -12,7 +12,6 @@ type SearchOptions struct {
 	ID        uuid.UUID `json:"id,omitempty"`
 	Title     *string   `json:"title,omitempty"`
 	Subtitle  *string   `json:"subtitle,omitempty"`
-	Type      *string   `json:"type,omitempty"`
 	TextQuery *string   `json:"textQuery,omitempty"`
 
 	// Date filters

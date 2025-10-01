@@ -8,13 +8,12 @@ import (
 )
 
 type UpdateOptions struct {
-	PhotosIDs []uuid.UUID `json:"photosIDs,omitempty"`
+	PhotosIDs []uuid.UUID `json:"photoIds,omitempty"`
 
-	IsCamera       *bool `json:"isCamera,omitempty"`
-	IsFavorite     *bool `json:"isFavorite,omitempty"`
-	IsScreenshot   *bool `json:"isScreenshot,omitempty"`
-	IsHidden       *bool `json:"isHidden,omitempty"`
-	NotInOnePhotos *bool `json:"notInOnePhotos,omitempty"`
+	IsFavorite    *bool `json:"isFavorite,omitempty"`
+	IsScreenshot  *bool `json:"isScreenshot,omitempty"`
+	IsHidden      *bool `json:"isHidden,omitempty"`
+	NotInOneAlbum *bool `json:"notInOneAlbum,omitempty"`
 }
 
 // Initialize updater
@@ -25,9 +24,6 @@ func init() {
 	metadataUpdater.AddScalarUpdater(func(a *Photo, u UpdateOptions) {
 		if u.IsFavorite != nil {
 			a.IsFavorite = *u.IsFavorite
-		}
-		if u.IsCamera != nil {
-			a.IsCamera = *u.IsCamera
 		}
 		if u.IsHidden != nil {
 			a.IsHidden = *u.IsHidden

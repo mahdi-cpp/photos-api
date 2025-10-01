@@ -71,11 +71,6 @@ func (m *Manager) load() error {
 			continue
 		}
 
-		//a := &photo.Collection[*Album]{
-		//	Item:   item,
-		//	Photos: albumPhotos,
-		//}
-
 		m.albums = append(m.albums, item)
 		m.photos[item.ID] = albumPhotos
 	}

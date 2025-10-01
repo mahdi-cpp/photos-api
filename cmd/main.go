@@ -33,7 +33,9 @@ func main() {
 	cameraHandler := camera_handler.New(appManager)
 
 	router.POST("/api/photos", assetHandler.Create)
-	router.GET("/api/photos", assetHandler.ReadAll)
+	router.POST("/api/photos/search", assetHandler.ReadAll)
+
+	router.GET("/api/photos", assetHandler.Read)
 
 	router.PATCH("/api/photos", assetHandler.Update)
 	router.PATCH("/api/photos/bulk-update", assetHandler.BulkUpdate)
@@ -41,11 +43,13 @@ func main() {
 	//router.DELETE("/api/photos", assetHandler.Delete)
 	router.DELETE("/api/photos/bulk-delete", assetHandler.BulkDelete)
 
+	//---
 	router.POST("/api/albums/photos", albumHandler.AddPhotos)
 	router.POST("/api/albums", albumHandler.Create)
+	router.POST("/api/albums/search", albumHandler.ReadCollections)
 
-	router.GET("/api/albums", albumHandler.ReadAll)
-	router.GET("/api/albums/collections", albumHandler.ReadCollections)
+	//router.GET("/api/albums", albumHandler.ReadAll)
+	//router.GET("/api/albums/collections", albumHandler.ReadCollections)
 
 	router.GET("/api/cameras", cameraHandler.ReadCollections)
 

@@ -94,8 +94,6 @@ func (h *PhotoHandler) Read(c *mygin.Context) {
 
 func (h *PhotoHandler) ReadAll(c *mygin.Context) {
 
-	fmt.Println("1")
-
 	userID, ok := help.GetUserID(c)
 	if !ok {
 		help.AbortWithUserIDInvalid(c)
@@ -103,20 +101,11 @@ func (h *PhotoHandler) ReadAll(c *mygin.Context) {
 		return
 	}
 
-	page, err := c.GetQueryInt("page")
+	var with *photo.SearchOptions
+	err := json.NewDecoder(c.Req.Body).Decode(&with)
 	if err != nil {
 		SendError(c, err.Error(), http.StatusBadRequest)
-	}
-	size, err := c.GetQueryInt("size")
-	if err != nil {
-		SendError(c, err.Error(), http.StatusBadRequest)
-	}
-
-	with := &photo.SearchOptions{
-		Sort:      "createdAt",
-		SortOrder: "desc",
-		Page:      page,
-		Size:      size,
+		return
 	}
 
 	accountManager, err := h.appManager.GetAccountManager(userID)
@@ -191,7 +180,9 @@ func (h *PhotoHandler) BulkUpdate(c *mygin.Context) {
 		return
 	}
 
-	_, err = accountManager.PhotosManager.Update(&request)
+	fmt.Println("BulkUpdate", request.PhotosIDs)
+
+	err = accountManager.PhotosManager.Update(&request)
 	if err != nil {
 		SendError(c, err.Error(), http.StatusBadRequest)
 		return

@@ -37,6 +37,10 @@ func (m *Manager) Create(info *UploadInfo) (*Photo, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	if strings.Contains(info.Photo.FileInfo.MimeType, "video") {
+		info.Photo.IsVideo = true
+	}
+
 	f := strings.ToLower(info.FileName)
 	if strings.Contains(f, "screenshot") {
 		info.Photo.IsScreenshot = true
@@ -80,13 +84,14 @@ func (m *Manager) ReadAll(with *SearchOptions) ([]*Photo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error reading message %s: %w", index.ID, err)
 		}
+		//fmt.Println(photo.DateTimeOriginal)
 		photos = append(photos, photo)
 	}
 
 	return photos, nil
 }
 
-func (m *Manager) Update(with *UpdateOptions) (string, error) {
+func (m *Manager) Update(with *UpdateOptions) error {
 
 	fmt.Println("photo manager Update")
 	m.mu.Lock()
@@ -103,14 +108,11 @@ func (m *Manager) Update(with *UpdateOptions) (string, error) {
 
 		_, err = m.collection.Update(item)
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
 
-	// Merging strings with the integer ID
-	merged := fmt.Sprintf(" %s, %d:", "with person_test count: ", len(with.PhotosIDs))
-
-	return merged, nil
+	return nil
 }
 
 func (m *Manager) Delete(id uuid.UUID) error {

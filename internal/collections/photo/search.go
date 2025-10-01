@@ -8,20 +8,20 @@ import (
 )
 
 type SearchOptions struct {
-	ID             uuid.UUID
-	UserID         uuid.UUID
-	TextQuery      *string `json:"textQuery,omitempty"`
-	FileSize       *string `json:"fileSize,omitempty"`
-	MimeType       *string `json:"mimeType,omitempty"`
-	CameraMake     *string `json:"cameraMake,omitempty"`
-	CameraModel    *string `json:"cameraModel,omitempty"`
-	IsCamera       *bool   `json:"isCamera,omitempty"`
-	IsFavorite     *bool   `json:"isFavorite,omitempty"`
-	IsScreenshot   *bool   `json:"isScreenshot,omitempty"`
-	IsHidden       *bool   `json:"isHidden,omitempty"`
-	IsLandscape    *bool   `json:"isLandscape,omitempty"`
-	NotInOnePhoto  *bool   `json:"notInOnePhoto,omitempty"`
-	HideScreenshot *bool   `json:"hideScreenshot"`
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	TextQuery   *string `json:"textQuery,omitempty"`
+	FileSize    *string `json:"fileSize,omitempty"`
+	MimeType    *string `json:"mimeType,omitempty"`
+	CameraMake  *string `json:"cameraMake,omitempty"`
+	CameraModel *string `json:"cameraModel,omitempty"`
+
+	IsVideo        *bool `json:"isVideo,omitempty"`
+	IsFavorite     *bool `json:"isFavorite,omitempty"`
+	IsScreenshot   *bool `json:"isScreenshot,omitempty"`
+	IsHidden       *bool `json:"isHidden,omitempty"`
+	NotInOneAlbum  *bool `json:"notInOneAlbum,omitempty"`
+	HideScreenshot *bool `json:"hideScreenshot"`
 
 	// Date filters
 	CreatedAfter  *time.Time `json:"createdAfter,omitempty"`
@@ -38,9 +38,10 @@ type SearchOptions struct {
 const MaxLimit = 1000
 
 var LessFunks = map[string]search.LessFunction[*Index]{
-	"id":        func(a, b *Index) bool { return a.ID.String() < b.ID.String() },
-	"createdAt": func(a, b *Index) bool { return a.CreatedAt.Before(b.CreatedAt) },
-	"updatedAt": func(a, b *Index) bool { return a.UpdatedAt.Before(b.UpdatedAt) },
+	"id":               func(a, b *Index) bool { return a.ID.String() < b.ID.String() },
+	"createdAt":        func(a, b *Index) bool { return a.CreatedAt.Before(b.CreatedAt) },
+	"updatedAt":        func(a, b *Index) bool { return a.UpdatedAt.Before(b.UpdatedAt) },
+	"dateTimeOriginal": func(a, b *Index) bool { return a.DateTimeOriginal.Before(b.DateTimeOriginal) },
 }
 
 func GetLessFunc(sortBy, sortOrder string) search.LessFunction[*Index] {
@@ -73,7 +74,7 @@ func BuildPhotoCriteria(with *SearchOptions) search.Criteria[*Index] {
 		}
 
 		// Boolean flags
-		if with.IsCamera != nil && c.IsCamera != *with.IsCamera {
+		if with.IsVideo != nil && c.IsVideo != *with.IsVideo {
 			return false
 		}
 		if with.IsFavorite != nil && c.IsFavorite != *with.IsFavorite {
@@ -85,34 +86,11 @@ func BuildPhotoCriteria(with *SearchOptions) search.Criteria[*Index] {
 		if with.IsHidden != nil && c.IsHidden != *with.IsHidden {
 			return false
 		}
+		if with.NotInOneAlbum != nil && c.NotInOneAlbum != *with.NotInOneAlbum {
+			return false
+		}
 
 		// Collection_old membership filters
-		//if len(with.AlbumsManager) > 0 {
-		//	found := false
-		//	for _, memberID := range with.AlbumsManager {
-		//		if search.StringInSlice(memberID, c.AlbumsManager) {
-		//			found = true
-		//			break
-		//		}
-		//	}
-		//	if !found {
-		//		return false
-		//	}
-		//}
-		//
-		//if len(with.Trips) > 0 {
-		//	found := false
-		//	for _, adminID := range with.Trips {
-		//		if search.StringInSlice(adminID, c.Trips) {
-		//			found = true
-		//			break
-		//		}
-		//	}
-		//	if !found {
-		//		return false
-		//	}
-		//}
-		//
 		//if len(with.Persons) > 0 {
 		//	found := false
 		//	for _, blockID := range with.Persons {

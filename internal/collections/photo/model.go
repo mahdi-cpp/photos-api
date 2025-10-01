@@ -24,16 +24,18 @@ func (i *Index) SetUpdatedAt(t time.Time) { i.UpdatedAt = t }
 func (i *Index) GetRecordSize() int       { return 450 }
 
 type Index struct {
-	ID           uuid.UUID `json:"id"`
-	UserID       uuid.UUID `json:"userId"`
-	CameraMake   string    `json:"cameraMake"`
-	CameraModel  string    `json:"cameraModel"`
-	IsCamera     bool      `json:"isCamera"`
-	IsFavorite   bool      `json:"isFavorite"`
-	IsScreenshot bool      `json:"isScreenshot"`
-	IsHidden     bool      `json:"isHidden"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	ID               uuid.UUID `json:"id"`
+	UserID           uuid.UUID `json:"userId"`
+	CameraMake       string    `json:"cameraMake"`
+	CameraModel      string    `json:"cameraModel"`
+	IsVideo          bool      `json:"isVideo"`
+	IsFavorite       bool      `json:"isFavorite"`
+	IsScreenshot     bool      `json:"isScreenshot"`
+	IsHidden         bool      `json:"isHidden"`
+	NotInOneAlbum    bool      `json:"notInOneAlbum"`
+	DateTimeOriginal time.Time `json:"dateTimeOriginal"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
 func (p *Photo) GetID() uuid.UUID         { return p.ID }
@@ -43,23 +45,25 @@ func (p *Photo) SetUpdatedAt(t time.Time) { p.UpdatedAt = t }
 func (p *Photo) GetRecordSize() int       { return 2048 }
 
 type Photo struct {
-	ID           uuid.UUID  `json:"id" index:"true"`
-	UserID       uuid.UUID  `json:"userId" index:"true"`
-	FileInfo     FileInfo   `json:"fileInfo"`
-	ImageInfo    ImageInfo  `json:"imageInfo"`
-	VideoInfo    VideoInfo  `json:"videoInfo"`
-	CameraInfo   CameraInfo `json:"cameraInfo"`
-	Location     Location   `json:"location"`
-	CameraMake   string     `json:"cameraMake" index:"true"`
-	CameraModel  string     `json:"cameraModel" index:"true"`
-	IsCamera     bool       `json:"isCamera"`
-	IsFavorite   bool       `json:"isFavorite"`
-	IsScreenshot bool       `json:"isScreenshot"`
-	IsHidden     bool       `json:"isHidden"`
-	CreatedAt    time.Time  `json:"createdAt" index:"true"`
-	UpdatedAt    time.Time  `json:"updatedAt" index:"true"`
-	DeletedAt    time.Time  `json:"deletedAt"`
-	Version      string     `json:"version"`
+	ID               uuid.UUID  `json:"id" index:"true"`
+	UserID           uuid.UUID  `json:"userId" index:"true"`
+	FileInfo         FileInfo   `json:"fileInfo"`
+	ImageInfo        ImageInfo  `json:"imageInfo"`
+	VideoInfo        VideoInfo  `json:"videoInfo"`
+	CameraInfo       CameraInfo `json:"cameraInfo"`
+	Location         Location   `json:"location"`
+	CameraMake       string     `json:"cameraMake" index:"true"`
+	CameraModel      string     `json:"cameraModel" index:"true"`
+	IsVideo          bool       `json:"isVideo" index:"true"`
+	IsFavorite       bool       `json:"isFavorite" index:"true"`
+	IsScreenshot     bool       `json:"isScreenshot" index:"true"`
+	IsHidden         bool       `json:"isHidden" index:"true"`
+	NotInOneAlbum    bool       `json:"notInOneAlbum" index:"true"`
+	DateTimeOriginal time.Time  `json:"dateTimeOriginal" index:"true"`
+	CreatedAt        time.Time  `json:"createdAt" index:"true"`
+	UpdatedAt        time.Time  `json:"updatedAt" index:"true"`
+	DeletedAt        time.Time  `json:"deletedAt"`
+	Version          string     `json:"version"`
 }
 
 type FileInfo struct {
@@ -80,17 +84,16 @@ type ImageInfo struct {
 }
 
 type CameraInfo struct {
-	Software         string    `json:"software,omitempty"`
-	DateTimeOriginal time.Time `json:"dateTimeOriginal,omitempty"`
-	ExposureTime     string    `json:"exposureTime,omitempty"`
-	FNumber          float64   `json:"fNumber,omitempty"` // دیافراگم معمولاً float است
-	ISO              int       `json:"iso,omitempty"`     // ISO معمولاً عدد صحیح است
-	FocalLength      string    `json:"focalLength,omitempty"`
-	FocalLength35mm  string    `json:"focalLength35mm,omitempty"`
-	Flash            string    `json:"flash,omitempty"`
-	LightSource      string    `json:"lightSource,omitempty"`
-	ExposureMode     string    `json:"exposureMode,omitempty"`
-	WhiteBalance     string    `json:"whiteBalance,omitempty"`
+	Software        string  `json:"software,omitempty"`
+	ExposureTime    string  `json:"exposureTime,omitempty"`
+	FNumber         float64 `json:"fNumber,omitempty"` // دیافراگم معمولاً float است
+	ISO             int     `json:"iso,omitempty"`     // ISO معمولاً عدد صحیح است
+	FocalLength     string  `json:"focalLength,omitempty"`
+	FocalLength35mm string  `json:"focalLength35mm,omitempty"`
+	Flash           string  `json:"flash,omitempty"`
+	LightSource     string  `json:"lightSource,omitempty"`
+	ExposureMode    string  `json:"exposureMode,omitempty"`
+	WhiteBalance    string  `json:"whiteBalance,omitempty"`
 }
 
 type VideoInfo struct {
