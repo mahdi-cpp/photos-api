@@ -1,6 +1,7 @@
 package photo
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,5 +58,11 @@ func moveMedia(userID uuid.UUID, workDir string, photo *Photo) error {
 			return err
 		}
 	}
+
+	err := os.Remove(filepath.Join(uploadsDir, workDir))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	return nil
 }

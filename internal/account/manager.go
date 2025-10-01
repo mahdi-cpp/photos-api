@@ -72,8 +72,16 @@ func directory(userID uuid.UUID) error {
 	return nil
 }
 
-func (m *Manager) handlePhotoCreation(photo *photo.Photo) {
-	fmt.Printf("handling photo creation %s\n", photo.CameraMake)
-	m.AlbumsManager.HandlePhotoCreation(photo)
-	m.CameraManager.HandlePhotoCreation(photo)
+func (m *Manager) handlePhotoCreation(message string, id uuid.UUID) {
+	switch message {
+	case "create":
+		m.AlbumsManager.HandlePhotoCreate(id)
+		m.CameraManager.HandlePhotoCreate(id)
+	case "update":
+		m.AlbumsManager.HandlePhotoUpdate(id)
+		m.CameraManager.HandlePhotoUpdate(id)
+	case "delete":
+		m.AlbumsManager.HandlePhotoDelete(id)
+		m.CameraManager.HandlePhotoDelete(id)
+	}
 }

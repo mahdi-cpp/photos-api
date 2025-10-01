@@ -68,9 +68,9 @@ func BuildPhotoCriteria(with *SearchOptions) search.Criteria[*Index] {
 		if with.CameraMake != nil && c.CameraMake != *with.CameraMake {
 			return false
 		}
-		//if with.CameraModel != nil && c.CameraModel != *with.CameraModel {
-		//	return false
-		//}
+		if with.CameraModel != nil && c.CameraModel != *with.CameraModel {
+			return false
+		}
 
 		// Boolean flags
 		if with.IsCamera != nil && c.IsCamera != *with.IsCamera {

@@ -28,7 +28,7 @@ var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 func TestMessageCreate(t *testing.T) {
 
-	workDir := "/app/tmp/10/"
+	workDir := "/app/tmp/all/"
 	entries, err := os.ReadDir(workDir)
 	if err != nil {
 		t.Fatal(err)
@@ -36,13 +36,13 @@ func TestMessageCreate(t *testing.T) {
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
-			singleUpload(t, workDir+entry.Name())
+			singleUpload(t, workDir, entry.Name())
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
-func singleUpload(t *testing.T, uploadFile string) {
+func singleUpload(t *testing.T, uploadFilePath string, fileName string) {
 
 	var err error
 
@@ -65,7 +65,7 @@ func singleUpload(t *testing.T, uploadFile string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	photo, err := upload(ctx, httpClient, apiURL, workDir.ID, uploadFile)
+	photo, err := upload(ctx, httpClient, apiURL, workDir.ID, uploadFilePath+fileName)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -76,13 +76,23 @@ func singleUpload(t *testing.T, uploadFile string) {
 
 	body := &UploadInfo{
 		Directory: workDir.ID.String(),
+		FileName:  fileName,
 		Photo:     *photo,
 	}
 
 	// 3 send to photos-api
-	_, err = help.MakeRequestBody("POST", photoApi, body)
+	response, err := help.MakeRequestBody("POST", photoApi, body)
 	if err != nil {
 		t.Errorf("create request body failed: %v", err)
+	}
+
+	if response.StatusCode == http.StatusBadRequest {
+		var e help.Error
+		err = json.NewDecoder(response.Body).Decode(&e)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Fatal(e.Message)
 	}
 }
 

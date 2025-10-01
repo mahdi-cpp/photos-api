@@ -1,8 +1,7 @@
 package camera
 
 import (
-	"fmt"
-
+	"github.com/google/uuid"
 	"github.com/mahdi-cpp/iris-tools/collection_manager_memory"
 	"github.com/mahdi-cpp/photos-api/internal/collections/photo"
 	"github.com/mahdi-cpp/photos-api/internal/help"
@@ -42,23 +41,21 @@ func (m *Manager) load() error {
 	}
 
 	indexes := m.photoManager.ReadIndexes()
-	for _, index := range indexes {
-		fmt.Println(index.CameraMake)
-	}
 
 	m.cameras = []*photo.Collection[*Camera]{}
 
 	for _, item := range all {
 
-		fmt.Println(item.CameraMake)
-
 		photoOptions := &photo.SearchOptions{
-			CameraMake: help.StrPtr(item.CameraMake),
-			Sort:       "id",
-			SortOrder:  "desc",
-			Page:       1,
-			Size:       6,
+			CameraMake:  help.StrPtr(item.CameraMake),
+			CameraModel: help.StrPtr(item.CameraModel),
+			Sort:        "id",
+			SortOrder:   "desc",
+			Page:        1,
+			Size:        6,
 		}
+
+		//item.Count = len(all)
 
 		photos, err := m.photoManager.ReadByIndexes(indexes, photoOptions)
 		if err != nil {
@@ -80,13 +77,18 @@ func (m *Manager) ReadCollections() []*photo.Collection[*Camera] {
 	return m.cameras
 }
 
-func (m *Manager) HandlePhotoCreation(photo *photo.Photo) {
+func (m *Manager) HandlePhotoCreate(id uuid.UUID) {
 
-	if photo.CameraMake != "" {
+	p, err := m.photoManager.Read(id)
+	if err != nil {
+		return
+	}
+
+	if p.CameraMake != "" {
 
 		isExist := false
 		for _, camera := range m.cameras {
-			if camera.Item.CameraMake == photo.CameraMake {
+			if camera.Item.CameraMake == p.CameraMake && camera.Item.CameraModel == p.CameraModel {
 				isExist = true
 				break
 			}
@@ -94,9 +96,9 @@ func (m *Manager) HandlePhotoCreation(photo *photo.Photo) {
 
 		if isExist == false { // if is new. create and reload cameras
 			camera := &Camera{
-				Title:       photo.CameraMake + " " + photo.CameraModel,
-				CameraMake:  photo.CameraMake,
-				CameraModel: photo.CameraModel,
+				Title:       p.CameraMake + " " + p.CameraModel,
+				CameraMake:  p.CameraMake,
+				CameraModel: p.CameraModel,
 			}
 			_, err := m.collection.Create(camera)
 			if err != nil {
@@ -108,4 +110,13 @@ func (m *Manager) HandlePhotoCreation(photo *photo.Photo) {
 			}
 		}
 	}
+	return
+}
+
+func (m *Manager) HandlePhotoUpdate(id uuid.UUID) {
+
+}
+
+func (m *Manager) HandlePhotoDelete(id uuid.UUID) {
+
 }

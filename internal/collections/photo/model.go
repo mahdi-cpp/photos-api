@@ -21,22 +21,19 @@ func (i *Index) GetID() uuid.UUID         { return i.ID }
 func (i *Index) SetID(id uuid.UUID)       { i.ID = id }
 func (i *Index) SetCreatedAt(t time.Time) { i.CreatedAt = t }
 func (i *Index) SetUpdatedAt(t time.Time) { i.UpdatedAt = t }
-func (i *Index) GetRecordSize() int       { return 400 }
+func (i *Index) GetRecordSize() int       { return 450 }
 
 type Index struct {
-	ID                  uuid.UUID `json:"id"`
-	UserID              uuid.UUID `json:"userId"`
-	CameraMake          string    `json:"cameraMake"`
-	CameraModel         string    `json:"cameraModel"`
-	IsCamera            bool      `json:"isCamera"`
-	IsFavorite          bool      `json:"isFavorite"`
-	IsScreenshot        bool      `json:"isScreenshot"`
-	IsHidden            bool      `json:"isHidden"`
-	CanDelete           bool      `json:"canDelete"`
-	CanEditContent      bool      `json:"canEditContent"`
-	CanAddToSharedAlbum bool      `json:"canAddToSharedAlbum"`
-	CreatedAt           time.Time `json:"createdAt"`
-	UpdatedAt           time.Time `json:"updatedAt"`
+	ID           uuid.UUID `json:"id"`
+	UserID       uuid.UUID `json:"userId"`
+	CameraMake   string    `json:"cameraMake"`
+	CameraModel  string    `json:"cameraModel"`
+	IsCamera     bool      `json:"isCamera"`
+	IsFavorite   bool      `json:"isFavorite"`
+	IsScreenshot bool      `json:"isScreenshot"`
+	IsHidden     bool      `json:"isHidden"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 func (p *Photo) GetID() uuid.UUID         { return p.ID }
@@ -59,8 +56,8 @@ type Photo struct {
 	IsFavorite   bool       `json:"isFavorite"`
 	IsScreenshot bool       `json:"isScreenshot"`
 	IsHidden     bool       `json:"isHidden"`
-	CreatedAt    time.Time  `json:"createdAt"`
-	UpdatedAt    time.Time  `json:"updatedAt"`
+	CreatedAt    time.Time  `json:"createdAt" index:"true"`
+	UpdatedAt    time.Time  `json:"updatedAt" index:"true"`
 	DeletedAt    time.Time  `json:"deletedAt"`
 	Version      string     `json:"version"`
 }
@@ -144,5 +141,10 @@ type DirectoryRequest struct {
 
 type UploadInfo struct {
 	Directory string `json:"directory"`
+	FileName  string `json:"fileName"`
 	Photo     Photo  `json:"photo"`
+}
+
+type BulkPhoto struct {
+	PhotoIDs []uuid.UUID `json:"photoIds"`
 }

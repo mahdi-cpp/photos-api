@@ -52,10 +52,9 @@ func (h *PhotoHandler) Create(c *mygin.Context) {
 		return
 	}
 
-	fmt.Println("request.Directory", request.Directory)
-
 	create, err := accountManager.PhotosManager.Create(request)
 	if err != nil {
+		fmt.Println(err)
 		SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -104,8 +103,6 @@ func (h *PhotoHandler) ReadAll(c *mygin.Context) {
 		return
 	}
 
-	fmt.Println("2")
-
 	page, err := c.GetQueryInt("page")
 	if err != nil {
 		SendError(c, err.Error(), http.StatusBadRequest)
@@ -115,22 +112,12 @@ func (h *PhotoHandler) ReadAll(c *mygin.Context) {
 		SendError(c, err.Error(), http.StatusBadRequest)
 	}
 
-	fmt.Println("page:", page)
-	fmt.Println("size:", size)
-
 	with := &photo.SearchOptions{
-		Page: page,
-		Size: size,
+		Sort:      "createdAt",
+		SortOrder: "desc",
+		Page:      page,
+		Size:      size,
 	}
-
-	//err := json.NewDecoder(c.Request.Body).Decode(&with)
-	//if err != nil {
-	//	fmt.Println("%w", err)
-	//	help.AbortWithRequestInvalid(c)
-	//	return
-	//}
-
-	fmt.Println("3")
 
 	accountManager, err := h.appManager.GetAccountManager(userID)
 	if err != nil {
@@ -148,6 +135,135 @@ func (h *PhotoHandler) ReadAll(c *mygin.Context) {
 	fmt.Println("ReadAll count", len(items))
 
 	c.JSON(http.StatusOK, items)
+}
+
+func (h *PhotoHandler) Update(c *mygin.Context) {
+
+	fmt.Println("1")
+
+	userID, ok := help.GetUserID(c)
+	if !ok {
+		SendError(c, "user id invalid", http.StatusBadRequest)
+		return
+	}
+
+	accountManager, err := h.appManager.GetAccountManager(userID)
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var request *photo.UploadInfo
+	err = json.NewDecoder(c.Req.Body).Decode(&request)
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("request.Directory", request.Directory)
+
+	create, err := accountManager.PhotosManager.Create(request)
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	c.JSON(http.StatusOK, create)
+}
+
+func (h *PhotoHandler) BulkUpdate(c *mygin.Context) {
+	userID, ok := help.GetUserID(c)
+	if !ok {
+		help.AbortWithUserIDInvalid(c)
+		return
+	}
+
+	accountManager, err := h.appManager.GetAccountManager(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, mygin.H{"error": err})
+		return
+	}
+
+	var request photo.UpdateOptions
+	err = json.NewDecoder(c.Req.Body).Decode(&request)
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err = accountManager.PhotosManager.Update(&request)
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	c.JSON(http.StatusOK, "")
+}
+
+func (h *PhotoHandler) Delete(c *mygin.Context) {
+
+	userID, ok := help.GetUserID(c)
+	if !ok {
+		help.AbortWithUserIDInvalid(c)
+		return
+	}
+
+	accountManager, err := h.appManager.GetAccountManager(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, mygin.H{"error": err})
+		return
+	}
+
+	id := c.Param("photoId")
+	photoId, err := uuid.Parse(id)
+	if err != nil {
+		return
+	}
+
+	err = accountManager.PhotosManager.Delete(photoId)
+	if err != nil {
+		c.JSON(http.StatusNotFound, mygin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, "")
+}
+
+func (h *PhotoHandler) BulkDelete(c *mygin.Context) {
+
+	fmt.Println("BulkDelete 1")
+
+	userID, ok := help.GetUserID(c)
+	if !ok {
+		help.AbortWithUserIDInvalid(c)
+		return
+	}
+
+	accountManager, err := h.appManager.GetAccountManager(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, mygin.H{"error": err})
+		return
+	}
+
+	fmt.Println("BulkDelete 2")
+
+	var request *photo.BulkPhoto
+	err = json.NewDecoder(c.Req.Body).Decode(&request)
+	if err != nil {
+		SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+	for _, photoID := range request.PhotoIDs {
+		err = accountManager.PhotosManager.Delete(photoID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, mygin.H{"error": err})
+			return
+		}
+	}
+
+	fmt.Println("BulkDelete 3")
+
+	c.JSON(http.StatusOK, "")
 }
 
 //
@@ -208,7 +324,7 @@ func (h *PhotoHandler) ReadAll(c *mygin.Context) {
 //	}
 //
 //	for _, photo := range allAssets {
-//		updateOptions.PhotosIds = append(updateOptions.PhotosIds, photo.ID)
+//		updateOptions.PhotosIDs = append(updateOptions.PhotosIDs, photo.ID)
 //	}
 //
 //	photo, err := userManager.Update(updateOptions)

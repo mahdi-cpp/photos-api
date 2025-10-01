@@ -64,4 +64,4 @@ type CollectionResponse struct {
 	Title string `json:"name"`
 }
 
-type OnCreateCallback func(*Photo)
+type OnCallback func(message string, id uuid.UUID)

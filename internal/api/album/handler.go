@@ -162,13 +162,9 @@ func (h *AlbumHandler) ReadCollections(c *mygin.Context) {
 		Sort:      "id",
 		SortOrder: "desc",
 		Page:      1,
-		Size:      40,
+		Size:      20,
 	}
-	items, err := accountManager.AlbumsManager.ReadCollections(with)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, mygin.H{"error": "failed album Read"})
-		return
-	}
+	items := accountManager.AlbumsManager.ReadCollections(with)
 
 	fmt.Println("Read Album Collections count", len(items))
 	c.JSON(http.StatusOK, items)

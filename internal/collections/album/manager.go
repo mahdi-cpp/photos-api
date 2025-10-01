@@ -13,12 +13,15 @@ type Manager struct {
 	photoManager *photo.Manager
 	collection   *collection_manager_memory.Manager[*Album]
 	join         *collection_manager_join.Manager[*photo.Join]
+	albums       []*Album
+	photos       map[uuid.UUID][]*photo.Photo //key is albumId
 }
 
 func NewManager(photoManager *photo.Manager, path string) (*Manager, error) {
 
 	manager := &Manager{
 		photoManager: photoManager,
+		photos:       make(map[uuid.UUID][]*photo.Photo),
 	}
 
 	var err error
@@ -32,7 +35,52 @@ func NewManager(photoManager *photo.Manager, path string) (*Manager, error) {
 		return nil, err
 	}
 
+	err = manager.load()
+	if err != nil {
+		return nil, err
+	}
+
 	return manager, nil
+}
+
+func (m *Manager) load() error {
+
+	items, err := m.collection.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	m.albums = []*Album{}
+
+	for _, item := range items {
+
+		allPhotos, err := m.join.GetByParentID(item.ID)
+		if err != nil {
+			continue
+		}
+
+		item.Count = len(allPhotos)
+		with := &photo.SearchOptions{
+			Sort:      "id",
+			SortOrder: "desc",
+			Page:      0,
+			Size:      5,
+		}
+		albumPhotos, err := m.photoManager.ReadJoinPhotos(allPhotos, with)
+		if err != nil {
+			continue
+		}
+
+		//a := &photo.Collection[*Album]{
+		//	Item:   item,
+		//	Photos: albumPhotos,
+		//}
+
+		m.albums = append(m.albums, item)
+		m.photos[item.ID] = albumPhotos
+	}
+
+	return nil
 }
 
 func (m *Manager) Create(album *Album) (*Album, error) {
@@ -40,6 +88,7 @@ func (m *Manager) Create(album *Album) (*Album, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return item, nil
 }
 
@@ -131,6 +180,12 @@ func (m *Manager) AddPhoto(albumID, photoID uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+
+	err = m.load()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -145,6 +200,12 @@ func (m *Manager) DeletePhoto(albumID, photoID uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+
+	err = m.load()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -157,47 +218,33 @@ func (m *Manager) ReadCollection(id uuid.UUID) (*Album, error) {
 	return item, nil
 }
 
-func (m *Manager) ReadCollections(with *SearchOptions) ([]*photo.Collection[*Album], error) {
+func (m *Manager) ReadCollections(with *SearchOptions) []*photo.Collection[*Album] {
 
-	items, err := m.collection.ReadAll()
-	if err != nil {
-		return nil, err
+	var results []*photo.Collection[*Album]
+
+	filterAlbums := Search(m.albums, with)
+
+	for _, album := range filterAlbums {
+		collection := &photo.Collection[*Album]{
+			Item:   album,
+			Photos: m.photos[album.ID],
+		}
+		results = append(results, collection)
 	}
 
-	filterItems := Search(items, with)
-
-	var collections []*photo.Collection[*Album]
-
-	for _, item := range filterItems {
-		all, err := m.join.GetByParentID(item.ID)
-		if err != nil {
-			continue
-		}
-
-		item.Count = len(all)
-		phSearchOptions := &photo.SearchOptions{
-			Sort:      "id",
-			SortOrder: "desc",
-			Page:      0,
-			Size:      5,
-		}
-		photos, err := m.photoManager.ReadJoinPhotos(all, phSearchOptions)
-		if err != nil {
-			continue
-		}
-		a := &photo.Collection[*Album]{
-			Item:   item,
-			Photos: photos,
-		}
-
-		collections = append(collections, a)
-	}
-
-	return collections, nil
+	return results
 }
 
 //--- events
 
-func (m *Manager) HandlePhotoCreation(photo *photo.Photo) {
+func (m *Manager) HandlePhotoCreate(id uuid.UUID) {
+
+}
+
+func (m *Manager) HandlePhotoUpdate(id uuid.UUID) {
+
+}
+
+func (m *Manager) HandlePhotoDelete(id uuid.UUID) {
 
 }
