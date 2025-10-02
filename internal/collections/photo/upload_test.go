@@ -29,7 +29,7 @@ var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 func TestMessageCreate(t *testing.T) {
 
-	workDir := "/app/tmp/all/"
+	workDir := "/app/tmp/12/"
 	entries, err := os.ReadDir(workDir)
 	if err != nil {
 		t.Fatal(err)

@@ -10,13 +10,15 @@ import (
 type Manager struct {
 	photoManager *photo.Manager
 	collection   *collection_manager_memory.Manager[*Camera]
-	cameras      []*photo.Collection[*Camera]
+	cameras      []*Camera
+	photos       map[uuid.UUID][]*photo.Photo //key is albumId
 }
 
 func NewManager(photoManager *photo.Manager, path string) (*Manager, error) {
 
 	manager := &Manager{
 		photoManager: photoManager,
+		photos:       make(map[uuid.UUID][]*photo.Photo),
 	}
 
 	var err error
@@ -42,11 +44,11 @@ func (m *Manager) load() error {
 
 	indexes := m.photoManager.ReadIndexes()
 
-	m.cameras = []*photo.Collection[*Camera]{}
+	m.cameras = []*Camera{}
 
 	for _, item := range all {
 
-		photoOptions := &photo.SearchOptions{
+		with := &photo.SearchOptions{
 			CameraMake:  help.StrPtr(item.CameraMake),
 			CameraModel: help.StrPtr(item.CameraModel),
 			Sort:        "id",
@@ -57,24 +59,57 @@ func (m *Manager) load() error {
 
 		//item.Count = len(all)
 
-		photos, err := m.photoManager.ReadByIndexes(indexes, photoOptions)
+		photos, err := m.photoManager.ReadByIndexes(indexes, with)
 		if err != nil {
 			return err
 		}
 
-		a := &photo.Collection[*Camera]{
-			Item:   item,
-			Photos: photos,
-		}
+		//a := &photo.Collection[*Camera]{
+		//	Item:   item,
+		//	Photos: photos,
+		//}
 
-		m.cameras = append(m.cameras, a)
+		m.cameras = append(m.cameras, item)
+		m.photos[item.ID] = photos
 	}
 
 	return nil
 }
 
-func (m *Manager) ReadCollections() []*photo.Collection[*Camera] {
-	return m.cameras
+func (m *Manager) ReadCollections(with *SearchOptions) []*photo.Collection[*Camera] {
+
+	var results []*photo.Collection[*Camera]
+	filterCameras := Search(m.cameras, with)
+
+	for _, camera := range filterCameras {
+		collection := &photo.Collection[*Camera]{
+			Item:   camera,
+			Photos: m.photos[camera.ID],
+		}
+		results = append(results, collection)
+	}
+
+	return results
+}
+
+func (m *Manager) ReadCameraPhotos(cameraID uuid.UUID, with *photo.SearchOptions) ([]*photo.Photo, error) {
+
+	camera, err := m.collection.Read(cameraID)
+	if err != nil {
+		return nil, err
+	}
+
+	indexes := m.photoManager.ReadIndexes()
+
+	with.CameraMake = help.StrPtr(camera.CameraMake)
+	with.CameraModel = help.StrPtr(camera.CameraModel)
+
+	photos, err := m.photoManager.ReadByIndexes(indexes, with)
+	if err != nil {
+		return nil, err
+	}
+
+	return photos, nil
 }
 
 func (m *Manager) HandlePhotoCreate(id uuid.UUID) {
@@ -88,7 +123,7 @@ func (m *Manager) HandlePhotoCreate(id uuid.UUID) {
 
 		isExist := false
 		for _, camera := range m.cameras {
-			if camera.Item.CameraMake == p.CameraMake && camera.Item.CameraModel == p.CameraModel {
+			if camera.CameraMake == p.CameraMake && camera.CameraModel == p.CameraModel {
 				isExist = true
 				break
 			}

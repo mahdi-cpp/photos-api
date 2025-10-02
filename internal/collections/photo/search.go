@@ -10,11 +10,12 @@ import (
 type SearchOptions struct {
 	ID          uuid.UUID
 	UserID      uuid.UUID
-	TextQuery   *string `json:"textQuery,omitempty"`
-	FileSize    *string `json:"fileSize,omitempty"`
-	MimeType    *string `json:"mimeType,omitempty"`
-	CameraMake  *string `json:"cameraMake,omitempty"`
-	CameraModel *string `json:"cameraModel,omitempty"`
+	AlbumID     uuid.UUID `json:"albumId"`
+	TextQuery   *string   `json:"textQuery,omitempty"`
+	FileSize    *string   `json:"fileSize,omitempty"`
+	MimeType    *string   `json:"mimeType,omitempty"`
+	CameraMake  *string   `json:"cameraMake,omitempty"`
+	CameraModel *string   `json:"cameraModel,omitempty"`
 
 	IsVideo        *bool `json:"isVideo,omitempty"`
 	IsFavorite     *bool `json:"isFavorite,omitempty"`

@@ -85,16 +85,12 @@ func (h *AlbumHandler) Read(c *mygin.Context) {
 
 func (h *AlbumHandler) ReadAll(c *mygin.Context) {
 
-	fmt.Println("1")
-
 	userID, ok := help.GetUserID(c)
 	if !ok {
 		help.AbortWithUserIDInvalid(c)
 		fmt.Println("user id invalid")
 		return
 	}
-
-	fmt.Println("2")
 
 	page, err := c.GetQueryInt("page")
 	if err != nil {
@@ -112,8 +108,6 @@ func (h *AlbumHandler) ReadAll(c *mygin.Context) {
 		Page: page,
 		Size: size,
 	}
-
-	fmt.Println("3")
 
 	accountManager, err := h.appManager.GetAccountManager(userID)
 	if err != nil {
@@ -142,17 +136,17 @@ func (h *AlbumHandler) ReadCollections(c *mygin.Context) {
 		return
 	}
 
+	var with *album.SearchOptions
+	err := json.NewDecoder(c.Req.Body).Decode(&with)
+	if err != nil {
+		help.SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	accountManager, err := h.appManager.GetAccountManager(userID)
 	if err != nil {
 		fmt.Printf("Decode error: %v\n", err)
 		c.JSON(http.StatusBadRequest, mygin.H{"error": err.Error()})
-		return
-	}
-
-	var with *album.SearchOptions
-	err = json.NewDecoder(c.Req.Body).Decode(&with)
-	if err != nil {
-		help.SendError(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -161,6 +155,38 @@ func (h *AlbumHandler) ReadCollections(c *mygin.Context) {
 	fmt.Println("Read Album Collections count", len(collections))
 
 	c.JSON(http.StatusOK, mygin.H{"collections": collections})
+}
+
+func (h *AlbumHandler) ReadAlbumPhotos(c *mygin.Context) {
+
+	fmt.Println("ReadCollectionPhotos")
+
+	userID, ok := help.GetUserID(c)
+	if !ok {
+		help.AbortWithUserIDInvalid(c)
+		fmt.Println("user id invalid")
+		return
+	}
+
+	var with *photo.SearchOptions
+	err := json.NewDecoder(c.Req.Body).Decode(&with)
+	if err != nil {
+		help.SendError(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	accountManager, err := h.appManager.GetAccountManager(userID)
+	if err != nil {
+		fmt.Printf("Decode error: %v\n", err)
+		c.JSON(http.StatusBadRequest, mygin.H{"error": err.Error()})
+		return
+	}
+
+	photos, err := accountManager.AlbumsManager.ReadCollectionPhotos(with.AlbumID, with)
+
+	fmt.Println("Read Album Photos count", len(photos))
+
+	c.JSON(http.StatusOK, photos)
 }
 
 func (h *AlbumHandler) AddPhotos(c *mygin.Context) {

@@ -43,15 +43,18 @@ func main() {
 	//router.DELETE("/api/photos", assetHandler.Delete)
 	router.DELETE("/api/photos/bulk-delete", assetHandler.BulkDelete)
 
-	//---
-	router.POST("/api/albums/photos", albumHandler.AddPhotos)
+	//---------------------------------------------------------------------------
 	router.POST("/api/albums", albumHandler.Create)
+	router.POST("/api/albums/photos", albumHandler.AddPhotos)
 	router.POST("/api/albums/search", albumHandler.ReadCollections)
+	router.POST("/api/albums/ali", albumHandler.ReadAlbumPhotos)
 
 	//router.GET("/api/albums", albumHandler.ReadAll)
 	//router.GET("/api/albums/collections", albumHandler.ReadCollections)
 
-	router.GET("/api/cameras", cameraHandler.ReadCollections)
+	//----------------------------------------------------------------------------
+	router.POST("/api/cameras/search", cameraHandler.ReadCollections)
+	router.POST("/api/cameras/ali", cameraHandler.ReadCollectionPhotos)
 
 	// Start the server
 	fmt.Println("Server is running on http://localhost:50151")

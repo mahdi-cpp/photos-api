@@ -230,6 +230,21 @@ func (m *Manager) ReadCollections(with *SearchOptions) []*photo.Collection[*Albu
 	return results
 }
 
+func (m *Manager) ReadCollectionPhotos(albumID uuid.UUID, with *photo.SearchOptions) ([]*photo.Photo, error) {
+
+	allPhotos, err := m.join.GetByParentID(albumID)
+	if err != nil {
+		return nil, err
+	}
+
+	albumPhotos, err := m.photoManager.ReadJoinPhotos(allPhotos, with)
+	if err != nil {
+		return nil, err
+	}
+
+	return albumPhotos, nil
+}
+
 //--- events
 
 func (m *Manager) HandlePhotoCreate(id uuid.UUID) {

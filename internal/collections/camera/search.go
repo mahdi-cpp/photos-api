@@ -51,7 +51,7 @@ func GetLessFunc(sortBy, sortOrder string) search.LessFunction[*Camera] {
 	return fn
 }
 
-func BuildCameraSearch(with SearchOptions) search.Criteria[*Camera] {
+func BuildCameraSearch(with *SearchOptions) search.Criteria[*Camera] {
 
 	return func(a *Camera) bool {
 
@@ -81,7 +81,7 @@ func BuildCameraSearch(with SearchOptions) search.Criteria[*Camera] {
 	}
 }
 
-func Search(chats []*Camera, with SearchOptions) []*Camera {
+func Search(chats []*Camera, with *SearchOptions) []*Camera {
 
 	// Build criteria
 	criteria := BuildCameraSearch(with)
